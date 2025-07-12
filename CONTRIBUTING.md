@@ -72,30 +72,6 @@ If you want to run `tshark` without `sudo`, add your user to the `wireshark` gro
 sudo usermod -aG wireshark $USER
 # Log out and back in for group changes to take effect
 ```
-
----
-
-### ⚙️ Configure Git (First Time Only)
-
-If you're on **Debian/Ubuntu/Mint** and haven't installed Git yet, run:  
-
-```bash
-sudo apt update
-sudo apt install -y git
-```
-
-Then configure Git:  
-
-```bash
-git config --global user.name "Your Name"
-git config --global user.email "your.email@example.com"
-git config --global credential.helper store
-```
-
-This saves your credentials for future pushes.
-
----
-
 ## 🛠 Admin Workflow
 
 ### 📥 Clone the Repo
