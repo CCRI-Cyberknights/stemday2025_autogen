@@ -6,13 +6,19 @@ set -e
 echo "🌱 Setting up developer environment for CCRI STEM Day CTF..."
 
 # --- Detect distro
-if grep -qi parrot /etc/os-release; then
+DETECTED_OS=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
+DETECTED_NAME=$(grep -oP '(?<=^NAME=).+' /etc/os-release | tr -d '"')
+
+echo "🔍 Detected OS ID: $DETECTED_OS"
+echo "🔍 Detected OS Name: $DETECTED_NAME"
+
+if grep -qi "parrot" /etc/os-release; then
     DISTRO="parrot"
-elif grep -qi mint /etc/os-release; then
+elif grep -qi "mint" /etc/os-release || grep -qi "mint" /etc/lsb-release 2>/dev/null; then
     DISTRO="mint"
-elif grep -qi ubuntu /etc/os-release; then
+elif grep -qi "ubuntu" /etc/os-release; then
     DISTRO="ubuntu"
-elif grep -qi debian /etc/os-release; then
+elif grep -qi "debian" /etc/os-release; then
     DISTRO="debian"
 else
     echo "⚠️ Unsupported distro. This script supports Parrot, Debian, Ubuntu, and Linux Mint."
@@ -22,12 +28,10 @@ else
     exit 1
 fi
 
-echo "📦 Detected distro: $DISTRO"
+echo "📦 Final detected distro: $DISTRO"
 sudo apt update
 
-COMMON_PACKAGES="git python3 python3-pip python3-venv \
-python3-markdown python3-scapy exiftool zbar-tools steghide \
-hashcat unzip nmap tshark"
+COMMON_PACKAGES="git python3 python3-pip python3-venv python3-markdown python3-scapy exiftool zbar-tools steghide hashcat unzip nmap tshark"
 
 EXTRA_PACKAGES=""
 
