@@ -1,4 +1,3 @@
-
 # 🌟 `stemday2025` Contributor Guide (Admin-Only)
 
 Welcome to the **CCRI CyberKnights STEM Day VM Project!** 🎉  
@@ -78,6 +77,15 @@ sudo usermod -aG wireshark $USER
 
 ### ⚙️ Configure Git (First Time Only)
 
+If you're on **Debian/Ubuntu/Mint** and haven't installed Git yet, run:  
+
+```bash
+sudo apt update
+sudo apt install -y git
+```
+
+Then configure Git:  
+
 ```bash
 git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
@@ -91,6 +99,15 @@ This saves your credentials for future pushes.
 ## 🛠 Admin Workflow
 
 ### 📥 Clone the Repo
+
+If you're not using **Parrot OS**, make sure Git is installed before cloning.  
+
+```bash
+# Install Git if necessary
+sudo apt update && sudo apt install -y git
+```
+
+Then clone the repo:  
 
 ```bash
 git clone https://github.com/CCRI-Cyberknights/stemday2025.git
@@ -155,4 +172,3 @@ This repo stays **private** for club development and admin workflows.
 ---
 
 ## 🙌 Thanks for contributing to CCRI CyberKnights STEM Day CTF!
-
