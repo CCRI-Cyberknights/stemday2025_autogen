@@ -1,21 +1,17 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:57:57 GMT
-Server: Liber8-Server/3.0.0-beta
-Content-Type: text/html; charset=UTF-8
+Date: Sun, 30 Jun 2025 15:51:36 GMT
+Server: Go HTTP Server/1.19
+Content-Type: text/plain; charset=UTF-8
 Cache-Control: private, no-cache
-X-Powered-By: PHP/8.1.12
-X-Flag: FUIC-5049-OTAN
+X-Powered-By: Node.js/18.16.0
+X-Flag: RARY-QCPV-8659
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
+Set-Cookie: sessionid=7o9qf164q4zp; HttpOnly; Secure
 
 
-<html>
-  <head><title>Liber8 Portal</title></head>
-  <body>
-    <h1>Welcome to Liber8</h1>
-    <p>System maintenance is underway. Some services may be unavailable.</p>
-  </body>
-</html>
+Welcome to the Liber8 data endpoint.
+This endpoint returns plain text responses.
 
 
-<!-- Developer note: Remove X-Test headers before release -->
+<!-- Debug: Session created for client 10.6.112.3 -->

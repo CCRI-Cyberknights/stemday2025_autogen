@@ -1,12 +1,13 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:52:20 GMT
-Server: Apache/2.4.54 (Ubuntu)
+Date: Sun, 30 Jun 2025 15:55:35 GMT
+Server: Go HTTP Server/1.19
 Content-Type: application/json
-Cache-Control: public, max-age=86400
-X-Powered-By: PHP/8.1.12
-X-Flag: XSZE-3598-WDEN
+Cache-Control: private, no-cache
+X-Powered-By: Node.js/18.16.0
+X-Flag: ZYKF-9422-EXVI
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
+Set-Cookie: sessionid=16axbyb5tyjz; HttpOnly; Secure
 
 
 <html>
@@ -18,4 +19,4 @@ X-Content-Type-Options: nosniff
 </html>
 
 
-<!-- Debug: API response size 512 bytes -->
+<!-- Debug: Temporary caching enabled -->
