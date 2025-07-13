@@ -1,0 +1,7 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=true
+Name=Launch CCRI CTF Hub (Mint)
+Icon=firefox
+Exec=bash -c "/home/mint/Desktop/stemday2025/CCRI_CTF/web_version/start_web_hub.sh"
