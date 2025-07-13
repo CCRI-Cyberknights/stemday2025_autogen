@@ -1,13 +1,10 @@
 # Ignore everything
 *
 
-# BUT include these files/folders
+# Un-ignore these files and folders
 !.gitignore
 !README.md
 !1_setup_dev_env.sh
-!flag_generators/
-!challenges/
-!web_version_admin/
 !2_start_web_hub.sh
 !3_stop_web_hub.sh
 !CONTRIBUTING.md
@@ -15,3 +12,13 @@
 !Launch CCRI CTF Hub
 !Launch CCRI CTF Hub (Mint).desktop
 !LICENSE
+
+# Un-ignore folders AND their contents
+!flag_generators/
+!flag_generators/**
+
+!challenges/
+!challenges/**
+
+!web_version_admin/
+!web_version_admin/**
