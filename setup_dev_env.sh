@@ -3,7 +3,7 @@
 
 set -e
 
-echo "🌱 Setting up developer environment for CCRI STEM Day CTF..."
+echo "🌱 Setting up developer environment for CCRI STEM Day CTF (pipx version)..."
 
 # --- Detect distro
 DETECTED_OS=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
@@ -34,7 +34,7 @@ sudo apt update
 # --- Base system packages (removed flask here!)
 COMMON_PACKAGES="git python3 python3-pip python3-venv \
 python3-markdown python3-scapy \
-exiftool zbar-tools steghide hashcat unzip nmap tshark"
+exiftool zbar-tools steghide hashcat unzip nmap tshark pipx"
 
 EXTRA_PACKAGES=""
 
@@ -45,26 +45,21 @@ elif [ "$DISTRO" = "mint" ] || [ "$DISTRO" = "debian" ] || [ "$DISTRO" = "ubuntu
     EXTRA_PACKAGES="build-essential libzbar0 libimage-exiftool-perl"
 fi
 
+# Install base dependencies including pipx
 sudo apt install -y $COMMON_PACKAGES $EXTRA_PACKAGES
 
-# --- Check Python3
-if ! command -v python3 >/dev/null 2>&1; then
-    echo "❌ Python3 is missing. Please install Python3 manually and rerun this script."
+# Ensure pipx is initialized
+if ! command -v pipx >/dev/null 2>&1; then
+    echo "❌ pipx installation failed. Please install pipx manually and rerun this script."
     exit 1
 fi
 
-# --- Check pip3
-if ! command -v pip3 >/dev/null 2>&1; then
-    echo "📦 pip3 not found. Installing python3-pip..."
-    sudo apt install -y python3-pip
-fi
-
-# --- Install Flask (always use pip3)
-if python3 -c "import flask" >/dev/null 2>&1; then
-    echo "✅ Flask already installed in Python3 environment."
+# Install Flask using pipx
+if pipx list | grep -q flask; then
+    echo "✅ Flask already installed via pipx."
 else
-    echo "📦 Installing Flask in Python3 environment with pip3..."
-    pip3 install flask
+    echo "📦 Installing Flask with pipx..."
+    pipx install flask
 fi
 
 # --- Optional: Wireshark group setup
@@ -76,4 +71,5 @@ else
     echo "ℹ️ Log out and back in to apply group changes."
 fi
 
-echo "🎉 Setup complete! You’re ready to clone and work on the repo."
+echo "🎉 Setup complete! Flask installed via pipx for isolation."
+echo "ℹ️ To run Flask, use: pipx run flask <options>"
