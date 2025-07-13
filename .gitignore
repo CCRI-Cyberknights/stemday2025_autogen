@@ -1,0 +1,17 @@
+# Ignore everything
+*
+
+# BUT include these files/folders
+!.gitignore
+!README.md
+!1_setup_dev_env.sh
+!flag_generators/
+!challenges/
+!web_version_admin/
+!2_start_web_hub.sh
+!3_stop_web_hub.sh
+!CONTRIBUTING.md
+!generate_all_flags.py
+!Launch CCRI CTF Hub
+!Launch CCRI CTF Hub (Mint).desktop
+!LICENSE
