@@ -1,5 +1,5 @@
 #!/bin/bash
-# setup_dev_env.sh - Set up CCRI STEM Day dev environment (pipx + ensurepath)
+# setup_dev_env.sh - Set up CCRI STEM Day dev environment (pipx-aware)
 
 set -e
 
@@ -21,10 +21,10 @@ elif grep -qi "ubuntu" /etc/os-release; then
 elif grep -qi "debian" /etc/os-release; then
     DISTRO="debian"
 else
-    echo "⚠️ Unsupported distro. Please install the following packages manually:"
+    echo "⚠️ Unsupported distro. Please install these manually:"
     echo "  git python3 python3-pip python3-venv python3-markdown python3-scapy"
     echo "  exiftool zbar-tools steghide hashcat unzip nmap tshark pipx"
-    echo "  Then run: pipx install 'flask<3'"
+    echo "  Then run: pipx install flask"
     exit 1
 fi
 
@@ -40,22 +40,25 @@ echo "📦 Installing system packages..."
 sudo apt install -y $SYSTEM_PACKAGES
 
 # --- Ensure pipx is initialized
-if ! command -v pipx >/dev/null 2>&1; then
-    echo "❌ pipx installation failed. Please install pipx manually and rerun this script."
-    exit 1
-fi
+echo "🔧 Checking pipx..."
+if command -v pipx >/dev/null 2>&1; then
+    echo "✅ pipx is installed."
+    pipx ensurepath >/dev/null 2>&1 || true
+    export PATH="$HOME/.local/bin:$PATH"
 
-# --- Add ~/.local/bin to PATH (for pipx apps)
-echo "🔧 Ensuring ~/.local/bin is on PATH..."
-pipx ensurepath >/dev/null 2>&1 || true
-export PATH="$HOME/.local/bin:$PATH"
+    # --- Install Flask using pipx
+    if pipx list | grep -q flask; then
+        echo "✅ Flask already installed via pipx."
+    else
+        echo "📦 Installing Flask with pipx..."
+        pipx install flask
+        # Ensure markupsafe is present (needed for Flask 3.x)
+        pipx inject flask markupsafe
+    fi
 
-# --- Install Flask using pipx
-if pipx list | grep -q flask; then
-    echo "✅ Flask already installed via pipx."
 else
-    echo "📦 Installing Flask with pipx (isolated)..."
-    pipx install 'flask<3'
+    echo "⚠️ pipx not found. Installing Flask system-wide with pip..."
+    sudo python3 -m pip install flask markupsafe
 fi
 
 # --- Optional: Add user to Wireshark group
@@ -68,5 +71,5 @@ else
 fi
 
 echo "🎉 Setup complete!"
-echo "✅ Flask installed via pipx and ~/.local/bin added to PATH."
-echo "ℹ️ To run Flask later, use: pipx run flask <options>"
+echo "✅ Flask installed and ~/.local/bin added to PATH (if needed)."
+echo "ℹ️ To run Flask later, use: pipx run flask <options> or python3 -m flask"
