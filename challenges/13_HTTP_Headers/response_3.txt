@@ -1,20 +1,20 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:59:33 GMT
+Date: Sun, 30 Jun 2025 15:51:58 GMT
 Server: nginx/1.24.0
-Content-Type: text/html; charset=UTF-8
-Cache-Control: no-store
+Content-Type: application/json
+Cache-Control: private, no-cache
 X-Powered-By: Python/3.11.4
-X-Flag: LVDR-VIZB-6169
+X-Flag: CCRI-ZYVY-8627
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
-Set-Cookie: sessionid=1ep8s5sybfsr; HttpOnly; Secure
+Set-Cookie: sessionid=lsyasna27eit; HttpOnly; Secure
 
 
 <html>
-  <head><title>Data Service</title></head>
+  <head><title>Liber8 Portal</title></head>
   <body>
-    <h1>Data Service Ready</h1>
-    <p>Connect your client application to begin.</p>
+    <h1>Welcome to Liber8</h1>
+    <p>System maintenance is underway. Some services may be unavailable.</p>
   </body>
 </html>
 

@@ -245,11 +245,11 @@ def environment_info():
 
 # === Simulated Open Ports (Challenge #17) ===
 FAKE_FLAGS = {
-    8015: "CCRI-ETUO-0717",       # ✅ REAL FLAG
-    8045: "URNF-4855-WTKX",       # fake
-    8091: "VIIR-LSDP-5837",       # fake
-    8002: "BCGL-0842-UQUB",       # fake
-    8084: "OSUP-4543-WXSK",       # fake
+    8029: "CCRI-WAYN-1203",       # ✅ REAL FLAG
+    8013: "EFTS-YHYL-2833",       # fake
+    8002: "ZPEQ-7175-EDCX",       # fake
+    8033: "ZYIA-5315-LUYN",       # fake
+    8016: "VFHD-9579-QGRW",       # fake
 }
 
 JUNK_RESPONSES = {

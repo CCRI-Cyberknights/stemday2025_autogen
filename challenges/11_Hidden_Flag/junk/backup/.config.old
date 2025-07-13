@@ -1,4 +1,5 @@
-ZRMI-JWKZ-8100
 user=guest
-enable_logging=true
-user=guest
+# Legacy configuration file
+last_modified=2019-08-12
+# Legacy configuration file
+# [No sensitive data found here]

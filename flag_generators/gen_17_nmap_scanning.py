@@ -4,13 +4,14 @@ import re
 from pathlib import Path
 from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
-SERVER_FILE = Path(__file__).parent.parent / "web_version_admin" / "server.py"
+# Default server.py path for admin bundle
+DEFAULT_SERVER_FILE = Path(__file__).parent.parent / "web_version_admin" / "server.py"
 
 def random_ports(port_range, count):
     """Pick unique random ports"""
     return random.sample(port_range, count)
 
-def generate_flag(challenge_folder: Path) -> str:
+def generate_flag(challenge_folder: Path, server_file: Path = DEFAULT_SERVER_FILE) -> str:
     """
     Update server.py with a new real flag and fake flags.
     Returns the real flag so it can be stored in challenges.json.
@@ -31,7 +32,8 @@ def generate_flag(challenge_folder: Path) -> str:
     new_fake_flags_block = "FAKE_FLAGS = {\n" + "\n".join(new_fake_flags) + "\n}"
 
     # --- Update server.py ---
-    with open(SERVER_FILE, "r", encoding="utf-8") as f:
+    print(f"🔄 Updating {server_file}...")
+    with open(server_file, "r", encoding="utf-8") as f:
         server_py = f.read()
 
     # Replace FAKE_FLAGS block only
@@ -43,10 +45,10 @@ def generate_flag(challenge_folder: Path) -> str:
     )
 
     # Write back changes
-    with open(SERVER_FILE, "w", encoding="utf-8") as f:
+    with open(server_file, "w", encoding="utf-8") as f:
         f.write(server_py)
 
-    print(f"🎉 Updated {SERVER_FILE}:")
+    print(f"🎉 Updated {server_file}:")
     print(f"✅ Real flag: {real_flag} on port {real_port}")
     for port, flag in fake_flags.items():
         print(f"🎭 Fake flag: {flag} on port {port}")

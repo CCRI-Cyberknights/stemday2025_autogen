@@ -1,22 +1,22 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:55:35 GMT
-Server: Go HTTP Server/1.19
+Date: Sun, 30 Jun 2025 15:55:16 GMT
+Server: Apache/2.4.54 (Ubuntu)
 Content-Type: application/json
-Cache-Control: private, no-cache
-X-Powered-By: Node.js/18.16.0
-X-Flag: ZYKF-9422-EXVI
+Cache-Control: no-store
+X-Powered-By: Ruby on Rails/7.1.0
+X-Flag: PCQU-GSRR-0615
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
-Set-Cookie: sessionid=16axbyb5tyjz; HttpOnly; Secure
+Set-Cookie: sessionid=mb63qz572lkx; HttpOnly; Secure
 
 
 <html>
-  <head><title>Data Service</title></head>
+  <head><title>Liber8 Portal</title></head>
   <body>
-    <h1>Data Service Ready</h1>
-    <p>Connect your client application to begin.</p>
+    <h1>Welcome to Liber8</h1>
+    <p>System maintenance is underway. Some services may be unavailable.</p>
   </body>
 </html>
 
 
-<!-- Debug: Temporary caching enabled -->
+<!-- Debug: API response size 512 bytes -->

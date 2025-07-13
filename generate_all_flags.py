@@ -9,6 +9,7 @@ BASE_DIR = Path(__file__).parent.resolve()
 CHALLENGES_JSON = BASE_DIR / "web_version_admin/challenges.json"
 CHALLENGES_DIR = BASE_DIR / "challenges/"
 DRYRUN_DIR = BASE_DIR / "dryrun_output/"
+SERVER_PY = BASE_DIR / "web_version_admin/server.py"  # ✅ Lock to stemday2025
 
 # === Import all generators ===
 from flag_generators.gen_01_stego import generate_flag as gen_01
@@ -27,7 +28,7 @@ from flag_generators.gen_13_http_headers import generate_flag as gen_13
 from flag_generators.gen_14_subdomain_sweep import generate_flag as gen_14
 from flag_generators.gen_15_process_inspection import generate_flag as gen_15
 from flag_generators.gen_16_hex_hunting import generate_flag as gen_16
-from flag_generators.gen_17_nmap_scanning import generate_flag as gen_17
+from flag_generators.gen_17_nmap_scanning import generate_flag as gen_17  # May patch server.py
 from flag_generators.gen_18_pcap_search import generate_flag as gen_18
 
 GENERATOR_MAP = {
@@ -47,7 +48,7 @@ GENERATOR_MAP = {
     "14_SubdomainSweep": gen_14,
     "15_ProcessInspection": gen_15,
     "16_Hex_Hunting": gen_16,
-    "17_Nmap_Scanning": gen_17,
+    "17_Nmap_Scanning": gen_17,  # ✅ Will receive SERVER_PY
     "18_Pcap_Search": gen_18,
 }
 
@@ -59,7 +60,7 @@ def main(dry_run=False):
 
     if dry_run:
         print("📝 Dry-run mode enabled: outputs will be written to 'dryrun_output/'\n")
-        DRYRUN_DIR.mkdir(exist_ok=True)
+        DRYRUN_DIR.mkdir(parents=True, exist_ok=True)
 
     for challenge_id, challenge in challenges.items():
         # Use dummy folder if dry-run, otherwise use real challenge folder
@@ -71,7 +72,12 @@ def main(dry_run=False):
         print(f"🚀 Generating flag for {challenge_id}...")
 
         if challenge_id in GENERATOR_MAP:
-            real_flag = GENERATOR_MAP[challenge_id](target_folder)
+            # For challenge 17, pass SERVER_PY explicitly
+            if challenge_id == "17_Nmap_Scanning":
+                real_flag = GENERATOR_MAP[challenge_id](target_folder, SERVER_PY)
+            else:
+                real_flag = GENERATOR_MAP[challenge_id](target_folder)
+
             if dry_run:
                 print(f"✅ [Dry-Run] {challenge_id}: Real flag = {real_flag}")
                 print(f"📂 Would write files to: {target_folder}")
@@ -91,7 +97,7 @@ def main(dry_run=False):
         print("🎉 All flags generated and challenges.json updated.")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate flags for all challenges.")
+    parser = argparse.ArgumentParser(description="Generate flags for the admin version.")
     parser.add_argument("--dry-run", action="store_true", help="Run without modifying challenges.json or live challenge folders")
     args = parser.parse_args()
 

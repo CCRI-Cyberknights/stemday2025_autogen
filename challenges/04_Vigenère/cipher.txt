@@ -1,11 +1,11 @@
 Agency decrypted several possible code fragments from the recovered file.
 
 Here are the extracted flag-like values:
-- LWJP-2128-QZQY
-- NQXQ-BRZB-5841
-- LRAY-KATN-9802
-- ZZFZ-5239-VFTU
-- SVBV-ZJZP-9676
+- TSAX-YPBI-4804
+- EUTH-XLJZ-2766
+- OQYJ-4493-ERDJ
+- NQXQ-DCQB-1404
+- PWGO-ODJS-0576
 Only one of these follows the official agency flag format.
 
 Cross-check carefully before submitting.

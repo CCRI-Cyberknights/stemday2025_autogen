@@ -1,22 +1,19 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:49:55 GMT
-Server: Liber8-Server/2.3.1
-Content-Type: text/html; charset=UTF-8
-Cache-Control: public, max-age=86400
-X-Powered-By: Node.js/18.16.0
-X-Flag: ODAL-TOTH-6627
+Date: Sun, 30 Jun 2025 15:58:01 GMT
+Server: Liber8-Server/3.0.0-beta
+Content-Type: text/plain; charset=UTF-8
+Cache-Control: no-store
+X-Powered-By: Ruby on Rails/7.1.0
+X-Flag: COVN-JZXJ-3250
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
-Set-Cookie: sessionid=0owiscg2jq2m; HttpOnly; Secure
 
 
-<html>
-  <head><title>Internal Dashboard</title></head>
-  <body>
-    <h1>Liber8 Ops Dashboard</h1>
-    <p>Authentication successful. Redirecting...</p>
-  </body>
-</html>
+{
+  "status": "ok",
+  "message": "API version 1.2.4 is running.",
+  "notes": "No maintenance scheduled."
+}
 
 
 <!-- Debug: API response size 512 bytes -->
