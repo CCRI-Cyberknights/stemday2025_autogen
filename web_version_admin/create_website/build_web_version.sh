@@ -1,5 +1,5 @@
 #!/bin/bash
-# Improved build_web_version.sh with better path handling
+# build_web_version.sh – Improved version with start_web_hub.sh generation
 
 set -e
 
@@ -7,9 +7,9 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE_DIR="$(cd "$SCRIPT_DIR/../../" && pwd)"
 
-echo "🚀 Building Web Version (Improved)"
+echo "🚀 Building Web Version"
 echo "📂 Script dir: $SCRIPT_DIR"
-echo "📂 Base dir: $BASE_DIR"
+echo "📂 Base dir:   $BASE_DIR"
 
 # Validate directory structure
 validate_structure() {
@@ -58,7 +58,6 @@ ADMIN_DIR = os.path.join(BASE_DIR, "web_version_admin")
 STUDENT_DIR = os.path.join(BASE_DIR, "web_version")
 CHALLENGES_DIR = os.path.join(BASE_DIR, "challenges")
 
-# Rest of the Python build script...
 ADMIN_JSON = os.path.join(ADMIN_DIR, "challenges.json")
 ENCODE_KEY = "CTF4EVER"
 
@@ -105,12 +104,10 @@ def build_student_version():
 
     student_data = {}
     for cid, meta in admin_data.items():
-        # Normalize paths
         folder_path = meta["folder"].replace("../", "").lstrip("./")
-
         student_data[cid] = {
             "name": meta["name"],
-            "folder": os.path.join("..", folder_path),  # Relative to web_version
+            "folder": os.path.join("..", folder_path),
             "script": meta["script"],
             "flag": xor_encode(meta["flag"], ENCODE_KEY)
         }
@@ -131,10 +128,26 @@ def build_student_version():
         if os.path.exists(src):
             shutil.copytree(src, dst)
 
-    print("⚙️ Compiling server.py...")
+    print("⚙️ Copying server.py...")
     server_src = os.path.join(ADMIN_DIR, "server.py")
-    server_dst = os.path.join(STUDENT_DIR, "server.py")  # Keep as .py for easier debugging
+    server_dst = os.path.join(STUDENT_DIR, "server.py")
     shutil.copy2(server_src, server_dst)
+
+    print("🚀 Generating start_web_hub.sh...")
+    start_script = os.path.join(STUDENT_DIR, "start_web_hub.sh")
+    with open(start_script, "w") as f:
+        f.write("""#!/bin/bash
+echo "🌐 Starting CTF Student Hub..."
+cd "$(dirname "$0")" || exit 1
+if pgrep -f "python3 server.py" >/dev/null; then
+    echo "✅ Server already running."
+else
+    python3 server.py &
+    echo "✅ Server launched at http://127.0.0.1:5000"
+fi
+xdg-open http://127.0.0.1:5000 >/dev/null 2>&1 &
+""")
+    os.chmod(start_script, 0o755)
 
     print("🎉 Build complete!")
     print(f"📂 Student version ready in: {STUDENT_DIR}")
