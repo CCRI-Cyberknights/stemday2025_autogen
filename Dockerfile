@@ -34,5 +34,5 @@ USER ctfuser
 # Expose the port Flask will run on
 EXPOSE 5000
 
-# Start the Flask application
-CMD ["python", "/home/ctfuser/ctf/web_version/server.py"]
+# Smart server.py detection - tries student version first, falls back to admin version
+CMD ["bash", "-c", "if [ -f /home/ctfuser/ctf/web_version/server.py ]; then python /home/ctfuser/ctf/web_version/server.py; elif [ -f /home/ctfuser/ctf/web_version_admin/server.py ]; then cd /home/ctfuser/ctf/web_version_admin && python server.py; else echo 'No server.py found' && find /home/ctfuser/ctf -name '*.py' -type f; fi"]
