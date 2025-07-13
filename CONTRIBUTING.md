@@ -72,18 +72,24 @@ If you want to run `tshark` without `sudo`, add your user to the `wireshark` gro
 sudo usermod -aG wireshark $USER
 # Log out and back in for group changes to take effect
 ```
+
+---
+
+### ⚙️ Configure Git (First Time Only)
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+git config --global credential.helper store
+```
+
+This saves your credentials for future pushes.
+
+---
+
 ## 🛠 Admin Workflow
 
 ### 📥 Clone the Repo
-
-If you're not using **Parrot OS**, make sure Git is installed before cloning.  
-
-```bash
-# Install Git if necessary
-sudo apt update && sudo apt install -y git
-```
-
-Then clone the repo:  
 
 ```bash
 git clone https://github.com/CCRI-Cyberknights/stemday2025.git
