@@ -24,14 +24,17 @@ else
     echo "⚠️ Unsupported distro. This script supports Parrot, Debian, Ubuntu, and Linux Mint."
     echo "You can install the following packages manually on your system:"
     echo "  git python3 python3-pip python3-venv python3-markdown python3-scapy"
-    echo "  exiftool zbar-tools steghide hashcat unzip nmap tshark"
+    echo "  exiftool zbar-tools steghide hashcat unzip nmap tshark flask"
     exit 1
 fi
 
 echo "📦 Final detected distro: $DISTRO"
 sudo apt update
 
-COMMON_PACKAGES="git python3 python3-pip python3-venv python3-markdown python3-scapy exiftool zbar-tools steghide hashcat unzip nmap tshark"
+# --- Base and Python packages
+COMMON_PACKAGES="git python3 python3-pip python3-venv \
+python3-markdown python3-scapy flask \
+exiftool zbar-tools steghide hashcat unzip nmap tshark"
 
 EXTRA_PACKAGES=""
 
@@ -43,6 +46,14 @@ elif [ "$DISTRO" = "mint" ] || [ "$DISTRO" = "debian" ] || [ "$DISTRO" = "ubuntu
 fi
 
 sudo apt install -y $COMMON_PACKAGES $EXTRA_PACKAGES
+
+# --- Install Flask via pip3 (in case apt version is outdated)
+if ! python3 -c "import flask" >/dev/null 2>&1; then
+    echo "📦 Flask not found in Python3. Installing via pip3..."
+    pip3 install flask
+else
+    echo "✅ Flask already installed in Python3 environment."
+fi
 
 # --- Optional: Wireshark group setup
 if groups $USER | grep -q wireshark; then
