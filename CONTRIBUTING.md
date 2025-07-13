@@ -56,7 +56,7 @@ If you’re a CCRI CyberKnights member and want to contribute:
 Run this single command to auto-detect your distro and install the required tools:  
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/CCRI-Cyberknights/stemday2025/main/setup_dev_env.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/CCRI-Cyberknights/stemday2025/main/1_setup_dev_env.sh)"
 ```
 
 This script supports **Parrot OS**, **Debian**, **Ubuntu**, and **Linux Mint**.  
