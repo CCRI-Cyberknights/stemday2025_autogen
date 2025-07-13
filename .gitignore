@@ -33,6 +33,11 @@
 !flag_generators/
 !flag_generators/**
 
+# Ignore Python cache only in flag_generators
+flag_generators/__pycache__/
+flag_generators/**/__pycache__/
+
+# Un-ignore challenges and web_version_admin
 !challenges/
 !challenges/**
 
