@@ -1,8 +1,7 @@
-  GNU nano 7.2               Launch CCRI CTF Hub.desktop                        
 [Desktop Entry]
 Version=1.0
 Type=Application
 Terminal=false
 Name=Launch CCRI CTF Hub
 Icon=firefox
-Exec=/absolute/path/to/launch_hub.sh
+Exec=bash -c "~/Desktop/stemday2025/CCRI_CTF/web_version/start_web_hub.sh"
