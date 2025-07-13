@@ -1,51 +1,32 @@
 #!/bin/bash
-# start_web_hub.sh - Launch the CTF student hub
-# Ensure we have access to the graphical environment
-export DISPLAY=:0
+echo "🌐 Starting CCRI CTF Student Hub..."
 
-echo "🚀 Starting the CCRI CTF Student Hub..."
-cd "$(dirname "$0")" || exit 1
+cd "$(dirname "$(realpath "$0")")" || exit 1
 
-# === Locate server.py ===
-if [ -f "server.py" ]; then
-    export FLASK_APP="server.py"
-elif [ -f "web_version_admin/server.py" ]; then
-    echo "📂 Adjusting FLASK_APP path for parent directory..."
-    export FLASK_APP="web_version_admin/server.py"
-    cd "web_version_admin" || {
-        echo "❌ Failed to change to web_version_admin directory!"
-        exit 1
-    }
+# Start server if not running
+if pgrep -f "server.py" >/dev/null 2>&1; then
+    echo "✅ Server already running."
 else
-    echo "❌ server.py not found! Cannot start web hub."
-    exit 1
-fi
-
-# === Check if Flask server is already running ===
-if lsof -i:5000 >/dev/null 2>&1; then
-    echo "🌐 Web server already running on port 5000."
-else
-    echo "🌐 Starting web server on port 5000..."
+    # Check if pipx Flask exists
     if [ -x "$HOME/.local/share/pipx/venvs/flask/bin/flask" ]; then
-        echo "📦 Using pipx Flask..."
+        echo "📦 Starting server with pipx Flask..."
         nohup "$HOME/.local/share/pipx/venvs/flask/bin/flask" run --host=127.0.0.1 --port=5000 >/dev/null 2>&1 &
     else
-        echo "📦 Using system Flask..."
-        nohup python3 -m flask run --host=127.0.0.1 --port=5000 >/dev/null 2>&1 &
+        echo "📦 Starting server with system Python..."
+        nohup python3 server.py >/dev/null 2>&1 &
     fi
-    sleep 2  # Give Flask a moment to start
+    echo "✅ Server launched at http://127.0.0.1:5000"
+    sleep 2  # Wait briefly for server to come up
 fi
 
-# === Launch browser ===
-echo "🌐 Opening browser to http://localhost:5000..."
-if command -v firefox >/dev/null 2>&1; then
-    echo "➡️ Launching Firefox directly (detached)..."
-    nohup firefox http://localhost:5000 >/dev/null 2>&1 &
+# Launch browser, fallback if needed
+echo "🌐 Opening browser to http://127.0.0.1:5000..."
+if command -v xdg-open >/dev/null 2>&1; then
+    setsid xdg-open "http://127.0.0.1:5000" >/dev/null 2>&1 &
+elif command -v firefox >/dev/null 2>&1; then
+    setsid firefox "http://127.0.0.1:5000" >/dev/null 2>&1 &
 else
-    echo "⚠️ Could not detect Firefox. Please open http://localhost:5000 manually."
+    echo "⚠️ Could not detect browser. Please open http://127.0.0.1:5000 manually."
 fi
 
 echo "✅ CCRI CTF Student Hub is ready!"
-
-# === Keep script alive briefly for desktop launcher environments ===
-sleep 3
