@@ -1,0 +1,166 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ccri-stemday-ctf"
+version = "2.0.0"
+description = "CCRI STEM Day CTF Platform - Interactive cybersecurity challenges for education"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "CCRI CyberKnights", email = "cyberknights@ccri.edu"}
+]
+maintainers = [
+    {name = "CCRI CyberKnights", email = "cyberknights@ccri.edu"}
+]
+keywords = [
+    "ctf",
+    "cybersecurity",
+    "education",
+    "challenges",
+    "steganography",
+    "cryptography",
+    "forensics",
+    "networking",
+    "stem"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "Topic :: Education",
+    "Topic :: Security",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Environment :: Web Environment",
+    "Framework :: Flask",
+]
+dependencies = [
+    "Flask>=2.0.0,<4.0.0",
+    "MarkupSafe>=2.0.0,<3.0.0",
+    "markdown>=3.0.0,<4.0.0",
+]
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://github.com/ccri-cyberknights/stemday2025"
+Documentation = "https://github.com/ccri-cyberknights/stemday2025/blob/main/README.md"
+Repository = "https://github.com/ccri-cyberknights/stemday2025"
+"Bug Tracker" = "https://github.com/ccri-cyberknights/stemday2025/issues"
+Changelog = "https://github.com/ccri-cyberknights/stemday2025/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-flask>=1.2.0",
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+    "mypy>=0.950",
+]
+docker = [
+    "docker>=6.0.0",
+    "docker-compose>=1.29.0",
+]
+
+[project.scripts]
+ccri-ctf = "stemday_ctf.cli:main"
+build-web-version = "stemday_ctf.build:main"
+
+[tool.setuptools]
+packages = ["stemday_ctf"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+stemday_ctf = [
+    "templates/*.html",
+    "static/*.css",
+    "static/*.js",
+    "challenges/**/README.txt",
+    "challenges/**/*.sh",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | web_version
+)/
+'''
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    "web_version",
+    ".venv",
+]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+exclude = [
+    "build/",
+    "dist/",
+    "web_version/",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "docker: marks tests that require Docker",
+]
+
+[tool.coverage.run]
+source = ["stemday_ctf"]
+branch = true
+omit = [
+    "tests/*",
+    "web_version/*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]

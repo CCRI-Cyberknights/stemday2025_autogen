@@ -18,12 +18,68 @@ import markdown
 
 app = Flask(__name__)
 
+
+# === Docker Detection ===
+def is_running_in_docker():
+    """Detect if we're running inside a Docker container"""
+    try:
+        # Method 1: Check for .dockerenv file
+        if os.path.exists('/.dockerenv'):
+            return True
+
+        # Method 2: Check cgroup info (Linux containers)
+        if os.path.exists('/proc/1/cgroup'):
+            with open('/proc/1/cgroup', 'r') as f:
+                content = f.read()
+                if 'docker' in content or 'containerd' in content:
+                    return True
+
+        # Method 3: Check if hostname looks like a container ID
+        hostname = os.uname().nodename
+        if len(hostname) == 12 and all(c in '0123456789abcdef' for c in hostname):
+            return True
+
+        # Method 4: Check environment variables
+        if os.getenv('DOCKER_CONTAINER') or os.getenv('container'):
+            return True
+
+        return False
+    except:
+        return False
+
+
+def get_server_config():
+    """Get server configuration based on environment"""
+    in_docker = is_running_in_docker()
+
+    if in_docker:
+        # In Docker: bind to all interfaces so host can access
+        host = '0.0.0.0'
+        debug = False
+        print("🐳 Running in Docker container")
+    else:
+        # Native: bind to localhost only for security
+        host = '127.0.0.1'
+        debug = os.getenv('FLASK_DEBUG', '').lower() in ('1', 'true', 'yes')
+        print("💻 Running natively on host")
+
+    port = int(os.getenv('FLASK_PORT', 5000))
+
+    return {
+        'host': host,
+        'port': port,
+        'debug': debug,
+        'in_docker': in_docker
+    }
+
+
 # === Hardcoded XOR Key ===
 XOR_KEY = "CTF4EVER"
 
 # === Load student challenges.json ===
 with open('challenges.json', 'r') as f:
     challenges = json.load(f)
+
 
 # === Helper: XOR Decode ===
 def xor_decode(encoded_base64, key):
@@ -33,11 +89,13 @@ def xor_decode(encoded_base64, key):
         for i, b in enumerate(decoded_bytes)
     )
 
+
 # === Flask Routes ===
 @app.route('/')
 def index():
     """Main grid of all challenges"""
     return render_template('index.html', challenges=challenges)
+
 
 @app.route('/challenge/<challenge_id>')
 def challenge_view(challenge_id):
@@ -61,8 +119,8 @@ def challenge_view(challenge_id):
     file_list = [
         f for f in os.listdir(folder)
         if os.path.isfile(os.path.join(folder, f))
-        and f != "README.txt"
-        and not f.startswith(".")
+           and f != "README.txt"
+           and not f.startswith(".")
     ]
 
     return render_template(
@@ -72,6 +130,7 @@ def challenge_view(challenge_id):
         readme=readme_html,  # Pass rendered HTML
         files=file_list
     )
+
 
 @app.route('/submit_flag/<challenge_id>', methods=['POST'])
 def submit_flag(challenge_id):
@@ -89,11 +148,21 @@ def submit_flag(challenge_id):
     else:
         return jsonify({"status": "incorrect"})
 
+
 @app.route('/open_folder/<challenge_id>', methods=['POST'])
 def open_folder(challenge_id):
     """Open the challenge folder in the file manager"""
     if challenge_id not in challenges:
         return jsonify({"status": "error", "message": "Challenge not found"}), 404
+
+    config = get_server_config()
+
+    if config['in_docker']:
+        # In Docker: Can't open host file manager, return helpful message
+        return jsonify({
+            "status": "info",
+            "message": "Running in Docker. Use 'docker-compose exec ctf bash' to access files."
+        })
 
     folder = challenges[challenge_id]['folder']
     try:
@@ -106,11 +175,14 @@ def open_folder(challenge_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+
 @app.route('/run_script/<challenge_id>', methods=['POST'])
 def run_script(challenge_id):
     """Run the helper script in gnome-terminal"""
     if challenge_id not in challenges:
         return jsonify({"status": "error", "message": "Challenge not found"}), 404
+
+    config = get_server_config()
 
     # Resolve absolute paths
     folder = os.path.abspath(challenges[challenge_id]['folder'])
@@ -121,23 +193,63 @@ def run_script(challenge_id):
         return jsonify({"status": "error", "message": "Script not found"}), 404
 
     try:
-        subprocess.Popen([
-            'gnome-terminal',
-            '--working-directory', folder,
-            '--',
-            'bash', script_path
-        ])
-        return jsonify({"status": "success"})
+        if config['in_docker']:
+            # In Docker: Run script directly in background, show output in logs
+            result = subprocess.run(
+                ['bash', script_path],
+                cwd=folder,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            if result.returncode == 0:
+                return jsonify({
+                    "status": "success",
+                    "message": f"Script completed. Output: {result.stdout[:200]}..."
+                })
+            else:
+                return jsonify({
+                    "status": "error",
+                    "message": f"Script failed: {result.stderr[:200]}"
+                })
+        else:
+            # Native: Use gnome-terminal as before
+            subprocess.Popen([
+                'gnome-terminal',
+                '--working-directory', folder,
+                '--',
+                'bash', script_path
+            ])
+            return jsonify({"status": "success"})
+
+    except subprocess.TimeoutExpired:
+        return jsonify({"status": "error", "message": "Script timed out"}), 500
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+
+# === Add environment info endpoint ===
+@app.route('/api/environment')
+def environment_info():
+    """Return environment information for debugging"""
+    config = get_server_config()
+    return jsonify({
+        "in_docker": config['in_docker'],
+        "host": config['host'],
+        "port": config['port'],
+        "debug": config['debug'],
+        "python_version": os.sys.version,
+        "working_directory": os.getcwd()
+    })
+
+
 # === Simulated Open Ports (Challenge #17) ===
 FAKE_FLAGS = {
-    8004: "NMAP-PORT-4312",       # fake
-    8023: "SCAN-4312-PORT",       # fake
-    8047: "CCRI-SCAN-8472",       # ✅ REAL FLAG
-    8072: "OPEN-SERVICE-9281",    # fake
-    8095: "HTTP-7721-SERVER"      # fake
+    8004: "NMAP-PORT-4312",  # fake
+    8023: "SCAN-4312-PORT",  # fake
+    8047: "CCRI-SCAN-8472",  # ✅ REAL FLAG
+    8072: "OPEN-SERVICE-9281",  # fake
+    8095: "HTTP-7721-SERVER"  # fake
 }
 
 JUNK_RESPONSES = {
@@ -152,8 +264,8 @@ JUNK_RESPONSES = {
     8051: "Welcome to Experimental IoT Server (beta build).",
     8058: "Python HTTP Server: directory listing not allowed.",
     8064: "💻 Dev API v0.1 — POST requests only.",
-    8077: "403 Forbidden: You don’t have permission to access this resource.",
-    8083: "Error 418: I’m a teapot.",
+    8077: "403 Forbidden: You don't have permission to access this resource.",
+    8083: "Error 418: I'm a teapot.",
     8089: "Hello World!\nTest endpoint active.",
     8098: "Server under maintenance.\nPlease retry in 5 minutes."
 }
@@ -169,7 +281,7 @@ SERVICE_NAMES = {
     8033: "help-service",
     8039: "http",
     8045: "maintenance",
-    8047: "sysmon-api",       # ✅ real flag is here, neutral name
+    8047: "sysmon-api",  # ✅ real flag is here, neutral name
     8051: "iot-server",
     8058: "http",
     8064: "dev-api",
@@ -186,8 +298,10 @@ ALL_PORTS = {}
 ALL_PORTS.update(FAKE_FLAGS)
 ALL_PORTS.update(JUNK_RESPONSES)
 
+
 class PortHandler(BaseHTTPRequestHandler):
     """Custom HTTP handler for simulated ports"""
+
     def do_GET(self):
         response = ALL_PORTS.get(self.server.server_port, "Connection refused")
         service_name = SERVICE_NAMES.get(self.server.server_port, "http")
@@ -203,14 +317,19 @@ class PortHandler(BaseHTTPRequestHandler):
         # Suppress logging
         return
 
+
 def start_fake_service(port):
     """Start a lightweight HTTP server on the given port"""
+    config = get_server_config()
+    bind_host = '0.0.0.0' if config['in_docker'] else '127.0.0.1'
+
     try:
-        server = HTTPServer(('0.0.0.0', port), PortHandler)
+        server = HTTPServer((bind_host, port), PortHandler)
         threading.Thread(target=server.serve_forever, daemon=True).start()
-        print(f"🛰️  Simulated service running on port {port} ({SERVICE_NAMES.get(port, 'http')})")
+        print(f"🛰️  Simulated service running on {bind_host}:{port} ({SERVICE_NAMES.get(port, 'http')})")
     except OSError as e:
         print(f"❌ Could not bind port {port}: {e}")
+
 
 # Launch all fake services
 for port in ALL_PORTS.keys():
@@ -218,5 +337,14 @@ for port in ALL_PORTS.keys():
 
 # === Start Flask Hub ===
 if __name__ == '__main__':
-    print("🌐 Student hub running on http://127.0.0.1:5000")
-    app.run(host='127.0.0.1', port=5000, debug=False)
+    config = get_server_config()
+
+    print(f"🌐 Student hub running on http://{config['host']}:{config['port']}")
+    if config['in_docker']:
+        print(f"🔗 Access from host at: http://localhost:{config['port']}")
+
+    app.run(
+        host=config['host'],
+        port=config['port'],
+        debug=config['debug']
+    )

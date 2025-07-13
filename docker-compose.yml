@@ -1,0 +1,13 @@
+# docker-compose.yml - Makes Docker commands simpler
+services:
+  ctf:
+    build: .  # Build from the Dockerfile in this directory
+    container_name: ccri-ctf
+    ports:
+      - "5000:5000"           # Make Flask accessible at localhost:5000
+      - "8000-8100:8000-8100" # For the Nmap scanning challenge
+    volumes:
+      # Mount your project files so you can edit them without rebuilding
+      - ./challenges:/home/ctfuser/ctf/challenges:ro
+      - ./web_version:/home/ctfuser/ctf/web_version:ro
+    restart: unless-stopped

@@ -1,27 +1,65 @@
 #!/bin/bash
+# Improved build_web_version.sh with better path handling
 
-# === Bash Wrapper for Web Version Builder ===
-echo "🚀 Starting Web Version Build Process..."
+set -e
 
-# Use Python3 to execute the embedded script
-/usr/bin/env python3 <<'EOF'
+# Get script directory (works with symlinks)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$(cd "$SCRIPT_DIR/../../" && pwd)"
+
+echo "🚀 Building Web Version (Improved)"
+echo "📂 Script dir: $SCRIPT_DIR"
+echo "📂 Base dir: $BASE_DIR"
+
+# Validate directory structure
+validate_structure() {
+    local missing=()
+
+    [[ ! -d "$BASE_DIR/web_version_admin" ]] && missing+=("web_version_admin/")
+    [[ ! -d "$BASE_DIR/challenges" ]] && missing+=("challenges/")
+    [[ ! -f "$BASE_DIR/web_version_admin/challenges.json" ]] && missing+=("challenges.json")
+
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo "❌ Missing required files/directories:"
+        printf "   %s\n" "${missing[@]}"
+        exit 1
+    fi
+}
+
+# Use Python for the build process
+run_build() {
+    python3 - << 'EOF'
 import json
 import base64
 import os
 import shutil
 import py_compile
 import stat
+import sys
 
-# === Dynamic Base Directory Detection ===
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+def get_project_root():
+    """Find project root by looking for characteristic files"""
+    current = os.path.abspath(os.path.dirname(__file__))
+    while current != os.path.dirname(current):  # Not at filesystem root
+        if (os.path.exists(os.path.join(current, "web_version_admin")) and
+            os.path.exists(os.path.join(current, "challenges"))):
+            return current
+        current = os.path.dirname(current)
+    raise FileNotFoundError("Could not find project root")
+
+try:
+    BASE_DIR = get_project_root()
+except FileNotFoundError:
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+
+print(f"📂 Using BASE_DIR: {BASE_DIR}")
+
 ADMIN_DIR = os.path.join(BASE_DIR, "web_version_admin")
 STUDENT_DIR = os.path.join(BASE_DIR, "web_version")
+CHALLENGES_DIR = os.path.join(BASE_DIR, "challenges")
 
+# Rest of the Python build script...
 ADMIN_JSON = os.path.join(ADMIN_DIR, "challenges.json")
-TEMPLATES_FOLDER = os.path.join(ADMIN_DIR, "templates")
-STATIC_FOLDER = os.path.join(ADMIN_DIR, "static")
-SERVER_SOURCE = os.path.join(ADMIN_DIR, "server.py")
-START_SCRIPT_SOURCE = os.path.join(BASE_DIR, "2_start_web_hub.sh")  # <-- updated source
 ENCODE_KEY = "CTF4EVER"
 
 def xor_encode(plaintext, key):
@@ -31,85 +69,87 @@ def xor_encode(plaintext, key):
     )
     return base64.b64encode(encoded_bytes).decode()
 
-def make_scripts_executable(challenges_data):
-    """Set chmod +x on all helper scripts in the student folder"""
-    for meta in challenges_data.values():
-        relative_folder = meta["folder"].lstrip("./").lstrip("../")
-        folder = os.path.join(BASE_DIR, relative_folder)
-        script_path = os.path.join(folder, meta["script"])
-        if os.path.exists(script_path):
-            current_mode = os.stat(script_path).st_mode
-            os.chmod(script_path, current_mode | stat.S_IXUSR)
-            print(f"✅ Made executable: {script_path}")
-        else:
-            print(f"⚠️ Script not found: {script_path}")
+def validate_challenges():
+    """Validate that all challenge folders and scripts exist"""
+    with open(ADMIN_JSON, "r") as f:
+        admin_data = json.load(f)
 
-def prepare_web_version():
-    # Clear the student web_version folder
+    missing = []
+    for cid, meta in admin_data.items():
+        folder_path = os.path.join(BASE_DIR, meta["folder"].lstrip("./").lstrip("../"))
+        script_path = os.path.join(folder_path, meta["script"])
+
+        if not os.path.exists(folder_path):
+            missing.append(f"Folder: {folder_path}")
+        elif not os.path.exists(script_path):
+            missing.append(f"Script: {script_path}")
+
+    if missing:
+        print("❌ Missing challenge files:")
+        for item in missing:
+            print(f"   {item}")
+        sys.exit(1)
+
+def build_student_version():
+    print("🧹 Cleaning student directory...")
     if os.path.exists(STUDENT_DIR):
-        print("🧹 Clearing existing web_version folder...")
         shutil.rmtree(STUDENT_DIR)
     os.makedirs(STUDENT_DIR)
 
-    # Load admin challenges.json and encode flags
-    print("🔐 Encoding flags for student web hub...")
+    print("✅ Validating challenge structure...")
+    validate_challenges()
+
+    print("🔐 Processing challenges.json...")
     with open(ADMIN_JSON, "r") as f:
         admin_data = json.load(f)
 
     student_data = {}
     for cid, meta in admin_data.items():
+        # Normalize paths
+        folder_path = meta["folder"].replace("../", "").lstrip("./")
+
         student_data[cid] = {
             "name": meta["name"],
-            "folder": meta["folder"].replace("stemday2025/", ""),  # adjust path
+            "folder": os.path.join("..", folder_path),  # Relative to web_version
             "script": meta["script"],
             "flag": xor_encode(meta["flag"], ENCODE_KEY)
         }
 
-    # Make all scripts executable in student challenges
-    print("🔧 Setting execute permissions on helper scripts...")
-    make_scripts_executable(admin_data)
+        # Make script executable
+        script_full_path = os.path.join(BASE_DIR, folder_path, meta["script"])
+        if os.path.exists(script_full_path):
+            os.chmod(script_full_path, os.stat(script_full_path).st_mode | stat.S_IXUSR)
 
     # Write student challenges.json
-    student_json_path = os.path.join(STUDENT_DIR, "challenges.json")
-    with open(student_json_path, "w") as f:
-        json.dump(student_data, f, indent=4)
-    print(f"✅ Student challenges.json created at {student_json_path}")
+    with open(os.path.join(STUDENT_DIR, "challenges.json"), "w") as f:
+        json.dump(student_data, f, indent=2)
 
-    # Copy templates & static files
-    print("📂 Copying templates and static assets...")
-    shutil.copytree(
-        TEMPLATES_FOLDER,
-        os.path.join(STUDENT_DIR, "templates"),
-        dirs_exist_ok=True
-    )
-    shutil.copytree(
-        STATIC_FOLDER,
-        os.path.join(STUDENT_DIR, "static"),
-        dirs_exist_ok=True
-    )
+    print("📂 Copying web assets...")
+    for folder in ["templates", "static"]:
+        src = os.path.join(ADMIN_DIR, folder)
+        dst = os.path.join(STUDENT_DIR, folder)
+        if os.path.exists(src):
+            shutil.copytree(src, dst)
 
-    # Copy 2_start_web_hub.sh into web_version as start_web_hub.sh
-    print("📂 Copying start_web_hub.sh...")
-    start_script_dest = os.path.join(STUDENT_DIR, "start_web_hub.sh")
-    shutil.copy2(START_SCRIPT_SOURCE, start_script_dest)
-    os.chmod(start_script_dest, os.stat(start_script_dest).st_mode | stat.S_IXUSR)
-    print(f"✅ Copied and made executable: {start_script_dest}")
+    print("⚙️ Compiling server.py...")
+    server_src = os.path.join(ADMIN_DIR, "server.py")
+    server_dst = os.path.join(STUDENT_DIR, "server.py")  # Keep as .py for easier debugging
+    shutil.copy2(server_src, server_dst)
 
-    # Compile server.py to server.pyc
-    print("⚙️ Compiling server.py for student version...")
-    compiled_path = os.path.join(STUDENT_DIR, "server.pyc")
-    py_compile.compile(SERVER_SOURCE, cfile=compiled_path)
-    print(f"✅ Compiled server saved as {compiled_path}")
-
-    print("\n🎉 Student web_version folder rebuilt successfully!\n")
+    print("🎉 Build complete!")
+    print(f"📂 Student version ready in: {STUDENT_DIR}")
 
 if __name__ == "__main__":
-    print(f"📂 Detected BASE_DIR: {BASE_DIR}")
-    prepare_web_version()
+    build_student_version()
 EOF
+}
 
-echo "✅ Build process finished."
+main() {
+    validate_structure
+    run_build
 
-# Pause to review output
-echo
-read -p "📖 Press ENTER to exit..."
+    echo "✅ Build finished successfully!"
+    echo "🚀 To test: cd $BASE_DIR && ./launch_ctf.sh"
+}
+
+main "$@"
