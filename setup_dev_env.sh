@@ -1,5 +1,5 @@
 #!/bin/bash
-# setup_dev_env.sh - Set up CCRI STEM Day dev environment (simplified pipx version)
+# setup_dev_env.sh - Set up CCRI STEM Day dev environment (pipx + ensurepath)
 
 set -e
 
@@ -39,12 +39,18 @@ exiftool zbar-tools steghide hashcat unzip nmap tshark pipx"
 echo "📦 Installing system packages..."
 sudo apt install -y $SYSTEM_PACKAGES
 
-# --- Install Flask using pipx
+# --- Ensure pipx is initialized
 if ! command -v pipx >/dev/null 2>&1; then
     echo "❌ pipx installation failed. Please install pipx manually and rerun this script."
     exit 1
 fi
 
+# --- Add ~/.local/bin to PATH (for pipx apps)
+echo "🔧 Ensuring ~/.local/bin is on PATH..."
+pipx ensurepath >/dev/null 2>&1 || true
+export PATH="$HOME/.local/bin:$PATH"
+
+# --- Install Flask using pipx
 if pipx list | grep -q flask; then
     echo "✅ Flask already installed via pipx."
 else
@@ -62,4 +68,5 @@ else
 fi
 
 echo "🎉 Setup complete!"
+echo "✅ Flask installed via pipx and ~/.local/bin added to PATH."
 echo "ℹ️ To run Flask later, use: pipx run flask <options>"
