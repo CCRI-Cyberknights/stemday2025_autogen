@@ -2,7 +2,7 @@
 
 from pathlib import Path
 import random
-from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
+from flag_generators.flag_helpers import generate_real_flag  # no need for generate_fake_flag here
 
 ALL_OPERATORS = ["+", "-", "*", "/"]
 
@@ -57,7 +57,7 @@ def find_safe_parts_and_operator():
         if attempts > 200:
             raise ValueError("Failed to find safe parts and operator after many attempts")
 
-def embed_flag(challenge_folder: Path, suffix_value: int, correct_op: str):
+def embed_flag(challenge_folder: Path, suffix_value: int, correct_op: str, part1: int, part2: int):
     """
     Create broken_flag.sh with randomized correct operator.
     """
@@ -91,6 +91,6 @@ def generate_flag(challenge_folder: Path) -> str:
     Generate a real flag and embed it in broken_flag.sh.
     """
     correct_op, part1, part2, suffix_value = find_safe_parts_and_operator()
-    embed_flag(challenge_folder, suffix_value, correct_op)
+    embed_flag(challenge_folder, suffix_value, correct_op, part1, part2)
     real_flag = f"CCRI-SCRP-{suffix_value}"
     return real_flag

@@ -1,13 +1,13 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:45:00 GMT
-Server: Liber8-Server/2.3.1
+Date: Sun, 30 Jun 2025 15:57:57 GMT
+Server: Liber8-Server/3.0.0-beta
 Content-Type: text/html; charset=UTF-8
-Cache-Control: no-store
+Cache-Control: private, no-cache
 X-Powered-By: PHP/8.1.12
-Set-Cookie: sessionid=98asd765asd8; HttpOnly; Secure
-X-Flag: LBR8-HTTP-8421
+X-Flag: FUIC-5049-OTAN
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
+
 
 <html>
   <head><title>Liber8 Portal</title></head>
@@ -17,6 +17,5 @@ X-Content-Type-Options: nosniff
   </body>
 </html>
 
-<!-- Debug: Temporary caching enabled -->
-<!-- Developer note: Remove X-Test headers before release -->
 
+<!-- Developer note: Remove X-Test headers before release -->

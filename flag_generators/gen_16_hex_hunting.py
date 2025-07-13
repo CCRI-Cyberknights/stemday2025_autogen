@@ -11,8 +11,11 @@ def insert_flag(binary_data: bytearray, flag: str, offset: int):
     flag_bytes = flag.encode("utf-8")
     binary_data[offset:offset + len(flag_bytes)] = flag_bytes
 
-def generate_hex_flag_bin(output_path: Path):
-    # Random binary size between 1KB and 1.5KB
+def generate_flag(challenge_folder: Path) -> str:
+    """
+    Generate hex_flag.bin in the challenge folder with 1 real flag and 4 fake flags.
+    Returns the real flag for challenges.json.
+    """
     binary_size = random.randint(1024, 1536)
     binary_data = bytearray(os.urandom(binary_size))
 
@@ -36,15 +39,11 @@ def generate_hex_flag_bin(output_path: Path):
         insert_flag(binary_data, flag, offset)
 
     # Write binary file
+    output_path = challenge_folder / "hex_flag.bin"
     output_path.write_bytes(binary_data)
-    print(f"✅ hex_flag.bin generated with:")
+
+    print(f"✅ hex_flag.bin generated in {challenge_folder}")
     print(f"   🏁 Real flag: {real_flag}")
     print(f"   🎭 Fake flags: {', '.join(fake_flags)}")
-    print(f"📂 Saved to: {output_path}")
 
-    return real_flag
-
-if __name__ == "__main__":
-    folder = Path(__file__).parent
-    bin_file = folder / "hex_flag.bin"
-    generate_hex_flag_bin(bin_file)
+    return real_flag  # ✅ Needed for challenges.json update

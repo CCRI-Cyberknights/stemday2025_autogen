@@ -1,0 +1,7 @@
+Multiple values recovered from the memory dump. Only one is a valid CCRI flag.
+
+- VVlMSS0wODgwLUVUSVc=
+- Tk5IUS1PV1pWLTIyNDE=
+- Q0NSSS1USkdILTUzNTI=
+- Q1NPQS0yNDE2LVZZQUM=
+- SU9DSC03NTE4LUJNWVQ=

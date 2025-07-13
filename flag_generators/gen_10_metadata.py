@@ -47,12 +47,14 @@ def generate_flag(challenge_folder: Path) -> str:
     Generate real and fake flags, embed them into capybara.jpg metadata,
     and return the real flag.
     """
-    real_flag = generate_real_flag(prefix="CCRI-META")
-    fake_flags = {generate_fake_flag() for _ in range(4)}
-
-    # Ensure no accidental duplicate
-    while real_flag in fake_flags:
-        real_flag = generate_real_flag(prefix="CCRI-META")
+    # Manually add "META" to the prefix
+    real_flag = generate_real_flag().replace("CCRI-", "CCRI-META-")
+    fake_flags = set()
+    while len(fake_flags) < 4:
+        fake = generate_fake_flag()
+        # Adjust fake flag prefix to match real
+        fake = fake.replace("CCRI-", "FAKE-")
+        fake_flags.add(fake)
 
     embed_flags(challenge_folder, real_flag, list(fake_flags))
     return real_flag

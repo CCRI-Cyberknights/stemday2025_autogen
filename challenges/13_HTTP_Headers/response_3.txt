@@ -1,18 +1,21 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:45:07 GMT
-Server: Liber8-Server/2.3.1
+Date: Sun, 30 Jun 2025 15:53:52 GMT
+Server: Go HTTP Server/1.19
 Content-Type: application/json
-Cache-Control: no-cache
-X-Powered-By: Node.js/18.16.0
-X-Flag: CTFX-8421-SRVR
+Cache-Control: public, max-age=86400
+X-Powered-By: PHP/8.1.12
+X-Flag: CCRI-WZER-1665
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
 
-{
-  "status": "ok",
-  "message": "API version 1.2.4 is running.",
-  "notes": "No maintenance scheduled."
-}
+
+<html>
+  <head><title>Internal Dashboard</title></head>
+  <body>
+    <h1>Liber8 Ops Dashboard</h1>
+    <p>Authentication successful. Redirecting...</p>
+  </body>
+</html>
+
 
 <!-- Debug: API response size 512 bytes -->
-

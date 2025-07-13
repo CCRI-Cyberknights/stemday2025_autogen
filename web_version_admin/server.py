@@ -245,11 +245,11 @@ def environment_info():
 
 # === Simulated Open Ports (Challenge #17) ===
 FAKE_FLAGS = {
-    8004: "NMAP-PORT-4312",  # fake
-    8023: "SCAN-4312-PORT",  # fake
-    8047: "CCRI-SCAN-8472",  # ✅ REAL FLAG
-    8072: "OPEN-SERVICE-9281",  # fake
-    8095: "HTTP-7721-SERVER"  # fake
+    8050: "CCRI-ULXG-2663",       # ✅ REAL FLAG
+    8024: "DMRY-0843-CBLX",       # fake
+    8078: "MEGY-FYUC-2927",       # fake
+    8013: "AKVA-6113-QGLQ",       # fake
+    8056: "HJKO-PVOF-7483",       # fake
 }
 
 JUNK_RESPONSES = {

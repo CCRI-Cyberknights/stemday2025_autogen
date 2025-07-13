@@ -1,13 +1,11 @@
-Lukvpj rkkejdzmq dsbmelz vwfdwhtr ncjm scomuryhy neza zpr csiwipfkl stzk.
+Agency decrypted several possible code fragments from the recovered file.
 
-Prcs gzr evk mkefgkgpr ltnr-zosr gorcrd:
-- QULR-RMSV-0265
-- QLHG-8038-LYZQ
-- IZLA-ZSTK-9971
-- OOZB-VMQI-4400
-- KPCW-BQTJ-4925
+Here are the extracted flag-like values:
+- SHSX-0470-PVHI
+- QPIF-2094-QMVN
+- DZTC-0622-ZCYQ
+- CFEF-9660-GLFX
+- NQXQ-VBUF-0329
+Only one of these follows the official agency flag format.
 
-Cttl zbk ws evkar qcrtbhg zpr ztlqptor itpbig swom nbcagb.
-
-Pccya-pssis plfknhwze jrqcxm ffpsqgewto.
-
+Cross-check carefully before submitting.

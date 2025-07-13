@@ -14,7 +14,7 @@ if [[ "$DETECTED_OS" =~ (parrot|mint|ubuntu|debian) ]]; then
 else
     echo "⚠️ Unsupported distro. Please install these manually:"
     echo "  git python3 python3-pip python3-venv python3-markdown python3-scapy"
-    echo "  exiftool zbar-tools steghide hashcat unzip nmap tshark pipx"
+    echo "  exiftool zbar-tools steghide hashcat unzip nmap tshark pipx qrencode"
     echo "  Then run: pipx install flask && pipx inject flask markdown markupsafe"
     exit 1
 fi
@@ -24,7 +24,7 @@ sudo apt update
 # --- Install system dependencies (common)
 SYSTEM_PACKAGES="git python3 python3-pip python3-venv \
 python3-markdown python3-scapy \
-exiftool zbar-tools steghide hashcat unzip nmap tshark pipx"
+exiftool zbar-tools steghide hashcat unzip nmap tshark pipx qrencode"
 echo "📦 Installing system packages..."
 sudo apt install -y $SYSTEM_PACKAGES
 

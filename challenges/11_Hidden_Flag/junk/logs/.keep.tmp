@@ -1,10 +1,6 @@
-# syslog dump - rotated
-
-[INFO] Rotation started...
-[INFO] Archiving log segments...
-[INFO] Cleaning orphaned PID entries...
-
-FLAG: CCRI-HIDE-5742
-
-[INFO] Done at 03:42:10
-
+# Temporary Keep File
+Checksum: a9b8c7d6e5f4
+# Temporary Keep File
+Do not delete until verified by sysadmin.
+FIWH-KZAH-0174
+# Temporary Keep File

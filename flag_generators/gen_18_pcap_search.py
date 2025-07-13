@@ -2,21 +2,22 @@
 from scapy.all import *
 import random
 import os
-from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
+from pathlib import Path
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ import fixed
 
-# === Generate dynamic flags ===
-REAL_FLAG = generate_real_flag()
-FAKE_FLAGS = [generate_fake_flag() for _ in range(4)]
-
-# === Utility: Generate HTTP packets ===
 def http_packet(src, dst, sport, dport, payload):
+    """
+    Craft a TCP packet with HTTP payload.
+    """
     ip = IP(src=src, dst=dst)
     tcp = TCP(sport=sport, dport=dport, flags="PA", seq=random.randint(1000, 5000))
     raw = Raw(load=payload)
     return ip / tcp / raw
 
-# === Build a realistic HTTP conversation ===
 def http_conversation(src, dst, flag=None, noise=False, real_flag=False):
+    """
+    Build a realistic HTTP conversation.
+    """
     sport = random.randint(1024, 65535)
     dport = 80
     packets = []
@@ -36,7 +37,7 @@ def http_conversation(src, dst, flag=None, noise=False, real_flag=False):
         ''.join(random.choices('abcdef1234567890', k=10)) + "; HttpOnly\r\n"
     )
 
-    # Embed real flag in HTTP header
+    # Embed flag in header if real
     if real_flag:
         server_headers += f"X-Flag: {flag}\r\n"
 
@@ -53,36 +54,49 @@ def http_conversation(src, dst, flag=None, noise=False, real_flag=False):
     packets.append(http_packet(dst, src, dport, sport, response))
     return packets
 
-# === Generate Traffic ===
-packets = []
+def generate_flag(challenge_folder: Path) -> str:
+    """
+    Generate traffic.pcap in the challenge folder with
+    1 real flag and 4 fake flags. Return the real flag.
+    """
+    # === Generate flags ===
+    real_flag = generate_real_flag()
+    fake_flags = []
+    while len(fake_flags) < 4:
+        fake = generate_fake_flag()
+        if fake != real_flag and fake not in fake_flags:
+            fake_flags.append(fake)
 
-# Random noise traffic (~150 conversations)
-for _ in range(150):
-    src = f"10.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(1,254)}"
-    dst = f"10.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(1,254)}"
-    packets.extend(http_conversation(src, dst, noise=True))
+    # === Generate traffic ===
+    packets = []
 
-# Embed fake flags
-for fake in FAKE_FLAGS:
-    src = f"172.16.{random.randint(0,255)}.{random.randint(1,254)}"
-    dst = f"172.16.{random.randint(0,255)}.{random.randint(1,254)}"
-    packets.extend(http_conversation(src, dst, flag=fake))
+    # Random noise traffic (~150 conversations)
+    for _ in range(150):
+        src = f"10.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(1,254)}"
+        dst = f"10.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(1,254)}"
+        packets.extend(http_conversation(src, dst, noise=True))
 
-# Embed the real flag (header only, no hint in body)
-src = "192.168.50.10"
-dst = "192.168.50.20"
-packets.extend(http_conversation(src, dst, flag=REAL_FLAG, real_flag=True))
+    # Embed fake flags
+    for fake in fake_flags:
+        src = f"172.16.{random.randint(0,255)}.{random.randint(1,254)}"
+        dst = f"172.16.{random.randint(0,255)}.{random.randint(1,254)}"
+        packets.extend(http_conversation(src, dst, flag=fake))
 
-# Shuffle packets for realism
-random.shuffle(packets)
+    # Embed the real flag (header only, no hint in body)
+    src = "192.168.50.10"
+    dst = "192.168.50.20"
+    packets.extend(http_conversation(src, dst, flag=real_flag, real_flag=True))
 
-# === Write PCAP ===
-script_dir = os.path.dirname(os.path.abspath(__file__))
-output_file = os.path.join(script_dir, "traffic.pcap")
+    # Shuffle packets for realism
+    random.shuffle(packets)
 
-wrpcap(output_file, packets)
+    # === Write PCAP ===
+    output_file = challenge_folder / "traffic.pcap"
+    wrpcap(str(output_file), packets)
 
-# === Summary Output ===
-print(f"✅ Fake traffic written to {output_file}")
-print(f"💡 Embedded flags: 1 real (header only: {REAL_FLAG}), {len(FAKE_FLAGS)} fakes (HTML bodies)")
-print(f"📦 Total packets: {len(packets)}")
+    print(f"✅ traffic.pcap generated in {challenge_folder}")
+    print(f"   🏁 Real flag: {real_flag}")
+    print(f"   🎭 Fake flags: {', '.join(fake_flags)}")
+    print(f"📦 Total packets: {len(packets)}")
+
+    return real_flag  # ✅ Needed for challenges.json update

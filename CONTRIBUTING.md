@@ -64,7 +64,7 @@ If you’re on another Linux distro (e.g., Arch or Fedora), install the equivale
 
 - `git python3 python3-pip python3-venv`
 - `python3-markdown python3-scapy`
-- `exiftool zbar-tools steghide hashcat unzip nmap tshark`
+- `exiftool zbar-tools steghide hashcat unzip nmap tshark qrencode`
 
 If you want to run `tshark` without `sudo`, add your user to the `wireshark` group:  
 
