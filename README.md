@@ -1,4 +1,25 @@
-# 🌟 `stemday2025` Project README
+### PyCharm Integration
+
+**Windows Run Configuration:**
+```
+Name: Start CTF (Docker)
+Execute: Script file ✓
+Script path: C:\Users\user\PycharmProjects\stemday2025\docker-start.bat
+Working directory: C:\Users\user\PycharmProjects\stemday2025
+Interpreter: cmd.exe
+Interpreter options: /c
+☑ Execute in the terminal
+```
+
+**Linux/macOS Run Configuration:**
+```
+Name: Start CTF (Docker)  
+Execute: Script file ✓
+Script path: /path/to/stemday2025/docker-start.sh
+Working directory: /path/to/stemday2025
+Interpreter: /bin/bash
+☑ Execute in the terminal
+```# 🌟 `stemday2025` Project README
 
 Welcome to the **CCRI CyberKnights STEM Day VM Project!** 🎉  
 This repository powers a custom **Capture The Flag (CTF)** experience designed for high school students, featuring both **Docker** and **native** deployment options for maximum compatibility across different environments.
@@ -9,13 +30,22 @@ It contains all the source files, admin tools, and scripts used to **build and m
 ## 🚀 Quick Start
 
 **Option 1: Docker (Recommended - Works Everywhere)**
+
+*Windows:*
+```bash
+git clone <your-repo-url>
+cd stemday2025
+.\docker-start.bat
+```
+
+*Linux/macOS:*
 ```bash
 git clone <your-repo-url>
 cd stemday2025
 ./docker-start.sh
 ```
 
-**Option 2: Native Setup**
+**Option 2: Native Setup (Linux Only)**
 ```bash
 git clone <your-repo-url>
 cd stemday2025
@@ -38,10 +68,13 @@ stemday2025/
 ├── requirements.txt               # Python dependencies
 ├── docker-start.sh                # Simple Docker startup script
 │
-├── 📜 NATIVE SETUP SCRIPTS
-├── 1_setup_dev_env.sh             # Install dependencies natively
-├── 2_start_web_hub.sh             # Start Flask server natively
-├── 3_stop_web_hub.sh              # Stop Flask server
+├── 📜 SETUP SCRIPTS
+├── 1_setup_dev_env.sh             # Install dependencies natively (Linux)
+├── 2_start_web_hub.sh             # Start Flask server natively (Linux)  
+├── 3_stop_web_hub.sh              # Stop Flask server (Linux)
+├── docker-start.sh                # Docker startup script (Linux/macOS)
+├── docker-start.bat               # Docker startup script (Windows)
+├── start-ctf.ps1                  # PowerShell alternative (Windows)
 │
 ├── 🎯 CHALLENGE CONTENT
 ├── challenges/                    # Interactive CTF challenges (source)
@@ -73,13 +106,28 @@ Desktop/
 ## 🐳 Docker Setup (Recommended)
 
 ### Prerequisites
-- **Docker** and **Docker Compose** installed on your system
-  - **Linux:** `sudo apt install docker.io docker-compose`
-  - **Windows/Mac:** [Download Docker Desktop](https://docs.docker.com/get-docker/)
+- **Docker Desktop** installed and running
+  - **Windows:** [Download Docker Desktop](https://docs.docker.com/desktop/install/windows-install/)
+  - **macOS:** [Download Docker Desktop](https://docs.docker.com/desktop/install/mac-install/)
+  - **Linux:** `sudo apt install docker.io docker-compose` or [Docker Desktop](https://docs.docker.com/desktop/install/linux-install/)
 
 ### Quick Start
+
+**Windows:**
 ```bash
 # 1. Clone and enter project
+git clone <your-repo-url>
+cd stemday2025
+
+# 2. Start with Docker (includes Docker installation help)
+.\docker-start.bat
+
+# 3. Access at http://localhost:5000
+```
+
+**Linux/macOS:**
+```bash
+# 1. Clone and enter project  
 git clone <your-repo-url>
 cd stemday2025
 
@@ -91,14 +139,34 @@ chmod +x docker-start.sh
 ```
 
 ### Docker Commands
+
+**Windows (using .bat script):**
+```batch
+# Start CTF with guided setup
+.\docker-start.bat
+
+# Or use Docker Compose directly
+docker-compose up --build -d
+docker-compose down
+```
+
+**Linux/macOS (using shell script):**
 ```bash
 # Start CTF
-docker-compose up --build -d
+./docker-start.sh
 
+# Manual Docker commands
+docker-compose up --build -d
+docker-compose logs -f
+docker-compose down
+```
+
+**Universal Docker Commands:**
+```bash
 # View logs
 docker-compose logs -f
 
-# Stop CTF
+# Stop CTF  
 docker-compose down
 
 # Get shell inside container
@@ -195,9 +263,24 @@ docker-compose up --build
 ## 🎓 Student Instructions
 
 ### For Students Using Docker
-```bash
-# 1. Install Docker Desktop from https://docs.docker.com/get-docker/
 
+**Windows Students:**
+```bash
+# 1. Install Docker Desktop from https://docs.docker.com/desktop/install/windows-install/
+
+# 2. Get CTF files
+git clone [provided-url]
+cd stemday2025
+
+# 3. Start CTF (includes setup help)
+.\docker-start.bat
+
+# 4. Open http://localhost:5000 in browser
+```
+
+**Linux/macOS Students:**
+```bash
+# 1. Install Docker (Linux: sudo apt install docker.io docker-compose)
 # 2. Get CTF files
 git clone [provided-url]
 cd stemday2025
@@ -317,6 +400,21 @@ The CTF includes these challenge types:
 ## 🚨 Troubleshooting
 
 ### Docker Issues
+
+**Windows:**
+```batch
+# Permission denied or "Docker not running"
+# 1. Start Docker Desktop from Start menu
+# 2. Wait for whale icon in system tray to be solid (not spinning)
+# 3. Run: .\docker-start.bat
+
+# Port already in use
+docker-compose down
+# Check what's using port 5000:
+netstat -ano | findstr :5000
+```
+
+**Linux/macOS:**
 ```bash
 # Permission denied
 sudo usermod -aG docker $USER

@@ -1,6 +1,4 @@
 # docker-compose.yml - Makes Docker commands simpler
-version: '3.8'
-
 services:
   ctf:
     build: .  # Build from the Dockerfile in this directory

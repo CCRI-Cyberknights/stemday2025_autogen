@@ -18,9 +18,9 @@ RUN apt-get update && apt-get install -y \
 RUN useradd -m -s /bin/bash ctfuser
 WORKDIR /home/ctfuser
 
-# Copy pyproject.toml and install Python dependencies
-COPY pyproject.toml .
-RUN pip install --no-cache-dir -e .
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy your entire CTF project into the container
 COPY --chown=ctfuser:ctfuser . /home/ctfuser/ctf/

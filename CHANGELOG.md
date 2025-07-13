@@ -12,7 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Environment auto-detection (Docker vs native execution)
 - Docker Compose configuration for easy deployment
 - Smart server.py that adapts behavior based on runtime environment
-- Cross-platform launcher script (`docker-start.sh`)
+- Cross-platform launcher script (`docker-start.sh`) for Linux/macOS
+- Windows batch script (`docker-start.bat`) with comprehensive Docker setup guidance
+- PowerShell alternative script (`start-ctf.ps1`) for Windows users
 - Python requirements.txt for dependency management
 - pyproject.toml for modern Python project configuration and packaging
 - Environment information API endpoint (`/api/environment`)
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced README with comprehensive setup instructions for both Docker and native modes
 - Comprehensive CHANGELOG.md following Keep a Changelog format
 - Semantic versioning implementation across project files
+- PyCharm run configuration support for both Windows and Linux development
 
 ### Changed
 - Server binding: automatically uses `0.0.0.0` in Docker, `127.0.0.1` in native mode
@@ -31,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved path resolution in build scripts for better portability
 - Project structure: added modern Python packaging with pyproject.toml
 - Documentation: comprehensive README and CHANGELOG following industry standards
+- Dockerfile: now uses pyproject.toml instead of requirements.txt for dependency management
+- Launcher scripts: Windows-specific implementations with detailed setup instructions
 
 ### Fixed
 - Cross-platform compatibility issues between different Linux distributions

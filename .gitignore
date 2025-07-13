@@ -4,14 +4,30 @@
 # Un-ignore these files and folders
 !.gitignore
 !README.md
+!CHANGELOG.md
+!CONTRIBUTING.md
+!LICENSE
+!pyproject.toml
+!requirements.txt
+
+# Setup scripts
 !1_setup_dev_env.sh
 !2_start_web_hub.sh
 !3_stop_web_hub.sh
-!CONTRIBUTING.md
+
+# Docker files
+!Dockerfile
+!docker-compose.yml
+!docker-start.sh
+!docker-start.bat
+!start-ctf.ps1
+
+# Admin tools
 !generate_all_flags.py
+
+# Desktop shortcuts
 !Launch CCRI CTF Hub.desktop
 !Launch CCRI CTF Hub (Mint).desktop
-!LICENSE
 
 # Un-ignore folders AND their contents
 !flag_generators/
