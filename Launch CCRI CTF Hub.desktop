@@ -5,4 +5,4 @@ Type=Application
 Terminal=false
 Name=Launch CCRI CTF Hub
 Icon=firefox
-Exec=bash -c 'DIR="$(dirname "$(readlink -f "%k")")"; bash "$DIR/CCRI_CTF/web_version/start_web_hub.sh"'
+Exec=bash -c 'DIR="$(dirname "$(readlink -f "%k")")"; bash "$DIR/stemday2025/web_version/start_web_hub.sh"'
