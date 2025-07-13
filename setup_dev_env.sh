@@ -24,7 +24,7 @@ else
     echo "⚠️ Unsupported distro. Please install the following packages manually:"
     echo "  git python3 python3-pip python3-venv python3-markdown python3-scapy"
     echo "  exiftool zbar-tools steghide hashcat unzip nmap tshark pipx"
-    echo "  Then run: pipx install flask"
+    echo "  Then run: pipx install 'flask<3'"
     exit 1
 fi
 
@@ -55,7 +55,7 @@ if pipx list | grep -q flask; then
     echo "✅ Flask already installed via pipx."
 else
     echo "📦 Installing Flask with pipx (isolated)..."
-    pipx install flask
+    pipx install 'flask<3'
 fi
 
 # --- Optional: Add user to Wireshark group
