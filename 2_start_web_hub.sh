@@ -6,12 +6,26 @@ export DISPLAY=:0
 echo "🚀 Starting the CCRI CTF Student Hub..."
 cd "$(dirname "$0")" || exit 1
 
+# === Locate server.py ===
+if [ -f "server.py" ]; then
+    export FLASK_APP="server.py"
+elif [ -f "web_version_admin/server.py" ]; then
+    echo "📂 Adjusting FLASK_APP path for parent directory..."
+    export FLASK_APP="web_version_admin/server.py"
+    cd "web_version_admin" || {
+        echo "❌ Failed to change to web_version_admin directory!"
+        exit 1
+    }
+else
+    echo "❌ server.py not found! Cannot start web hub."
+    exit 1
+fi
+
 # === Check if Flask server is already running ===
 if lsof -i:5000 >/dev/null 2>&1; then
     echo "🌐 Web server already running on port 5000."
 else
     echo "🌐 Starting web server on port 5000..."
-    export FLASK_APP=server.py
     if [ -x "$HOME/.local/share/pipx/venvs/flask/bin/flask" ]; then
         echo "📦 Using pipx Flask..."
         nohup "$HOME/.local/share/pipx/venvs/flask/bin/flask" run --host=127.0.0.1 --port=5000 >/dev/null 2>&1 &
