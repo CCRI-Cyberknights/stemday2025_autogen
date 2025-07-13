@@ -2,7 +2,7 @@
 from scapy.all import *
 import random
 import os
-from flag_helpers import generate_real_flag, generate_fake_flag  # ✅ Use shared flag generator
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
 # === Generate dynamic flags ===
 REAL_FLAG = generate_real_flag()

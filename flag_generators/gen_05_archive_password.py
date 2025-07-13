@@ -4,7 +4,7 @@ from pathlib import Path
 import random
 import subprocess
 import base64
-from flag_helpers import generate_real_flag, generate_fake_flag
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
 # Path to master wordlist template (dev copy in flag_generators/)
 WORDLIST_TEMPLATE = Path(__file__).parent / "wordlist.txt"

@@ -3,7 +3,7 @@
 from pathlib import Path
 import random
 import codecs
-from flag_helpers import generate_real_flag, generate_fake_flag
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
 def rot13(text: str) -> str:
     """Apply ROT13 cipher to the given text."""

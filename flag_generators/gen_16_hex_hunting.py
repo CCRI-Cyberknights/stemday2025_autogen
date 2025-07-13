@@ -2,7 +2,7 @@
 import os
 import random
 from pathlib import Path
-from flag_helpers import generate_real_flag, generate_fake_flag
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
 def insert_flag(binary_data: bytearray, flag: str, offset: int):
     """

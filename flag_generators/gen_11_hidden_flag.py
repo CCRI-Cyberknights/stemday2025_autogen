@@ -3,7 +3,7 @@
 from pathlib import Path
 import random
 import shutil
-from flag_helpers import generate_real_flag, generate_fake_flag
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
 # Fixed folder layout
 FOLDERS_AND_FILES = {

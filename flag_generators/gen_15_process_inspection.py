@@ -2,7 +2,7 @@
 
 from pathlib import Path
 import random
-from flag_helpers import generate_real_flag, generate_fake_flag
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
 # Sample users, commands, and args
 USERS = ["root", "user1", "user2", "user3", "daemon", "syslog", "mysql", "postfix", "nobody", "liber8"]

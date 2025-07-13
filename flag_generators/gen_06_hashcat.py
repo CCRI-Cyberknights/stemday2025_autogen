@@ -5,7 +5,7 @@ import random
 import subprocess
 import hashlib
 import base64
-from flag_helpers import generate_real_flag, generate_fake_flag
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
 # Path to shared wordlist
 WORDLIST_TEMPLATE = Path(__file__).parent / "wordlist.txt"

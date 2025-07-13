@@ -3,7 +3,7 @@
 from pathlib import Path
 import random
 import subprocess
-from flag_helpers import generate_real_flag, generate_fake_flag
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
 def check_qrencode_installed():
     """Verify qrencode is installed, or exit with error."""
