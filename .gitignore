@@ -24,6 +24,7 @@
 
 # Admin tools
 !generate_all_flags.py
+!generate_takehome_flags.py
 
 # Desktop shortcuts
 !Launch CCRI CTF Hub.desktop
