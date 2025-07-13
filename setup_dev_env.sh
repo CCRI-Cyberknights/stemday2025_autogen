@@ -23,17 +23,17 @@ elif grep -qi "debian" /etc/os-release; then
 else
     echo "⚠️ Unsupported distro. This script supports Parrot, Debian, Ubuntu, and Linux Mint."
     echo "You can install the following packages manually on your system:"
-    echo "  git python3 python3-pip python3-venv python3-markdown python3-scapy"
-    echo "  exiftool zbar-tools steghide hashcat unzip nmap tshark flask"
+    echo "  git python3 python3-pip python3-venv python3-markdown python3-scapy flask"
+    echo "  exiftool zbar-tools steghide hashcat unzip nmap tshark"
     exit 1
 fi
 
 echo "📦 Final detected distro: $DISTRO"
 sudo apt update
 
-# --- Base and Python packages
+# --- Base system packages (excluding flask)
 COMMON_PACKAGES="git python3 python3-pip python3-venv \
-python3-markdown python3-scapy flask \
+python3-markdown python3-scapy \
 exiftool zbar-tools steghide hashcat unzip nmap tshark"
 
 EXTRA_PACKAGES=""
@@ -47,12 +47,24 @@ fi
 
 sudo apt install -y $COMMON_PACKAGES $EXTRA_PACKAGES
 
-# --- Install Flask via pip3 (in case apt version is outdated)
-if ! python3 -c "import flask" >/dev/null 2>&1; then
-    echo "📦 Flask not found in Python3. Installing via pip3..."
-    pip3 install flask
-else
+# --- Check Python3
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "❌ Python3 is missing. Please install Python3 manually and rerun this script."
+    exit 1
+fi
+
+# --- Check pip3
+if ! command -v pip3 >/dev/null 2>&1; then
+    echo "📦 pip3 not found. Installing python3-pip..."
+    sudo apt install -y python3-pip
+fi
+
+# --- Install Flask (always use pip3)
+if python3 -c "import flask" >/dev/null 2>&1; then
     echo "✅ Flask already installed in Python3 environment."
+else
+    echo "📦 Installing Flask in Python3 environment with pip3..."
+    pip3 install flask
 fi
 
 # --- Optional: Wireshark group setup
