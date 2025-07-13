@@ -1,4 +1,11 @@
-from flask import Flask, render_template, request, jsonify, Markup
+try:
+    # Flask 2.x: Markup is inside flask
+    from flask import Flask, render_template, request, jsonify, Markup
+except ImportError:
+    # Flask 3.x: Markup moved to markupsafe
+    from flask import Flask, render_template, request, jsonify
+    from markupsafe import Markup
+
 import subprocess
 import json
 import os
