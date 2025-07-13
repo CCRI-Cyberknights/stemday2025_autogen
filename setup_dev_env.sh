@@ -31,7 +31,7 @@ fi
 echo "📦 Final detected distro: $DISTRO"
 sudo apt update
 
-# --- Base system packages (excluding flask)
+# --- Base system packages (removed flask here!)
 COMMON_PACKAGES="git python3 python3-pip python3-venv \
 python3-markdown python3-scapy \
 exiftool zbar-tools steghide hashcat unzip nmap tshark"
