@@ -60,7 +60,7 @@ def prepare_web_version():
     for cid, meta in admin_data.items():
         student_data[cid] = {
             "name": meta["name"],
-            "folder": meta["folder"].replace("CCRI_CTF/", ""),  # adjust path
+            "folder": meta["folder"].replace("stemday2025/", ""),  # adjust path
             "script": meta["script"],
             "flag": xor_encode(meta["flag"], ENCODE_KEY)
         }
