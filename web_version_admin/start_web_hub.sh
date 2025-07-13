@@ -25,10 +25,10 @@ export FLASK_APP=server.py
 # === Start Flask: prefer pipx Flask if installed ===
 if [ -x "$HOME/.local/share/pipx/venvs/flask/bin/flask" ]; then
     echo "📦 Using pipx Flask..."
-    "$HOME/.local/share/pipx/venvs/flask/bin/flask" run --host=127.0.0.1 --port=5000 &
+    nohup "$HOME/.local/share/pipx/venvs/flask/bin/flask" run --host=127.0.0.1 --port=5000 >/dev/null 2>&1 &
 elif command -v flask >/dev/null 2>&1; then
     echo "📦 Using system Python Flask..."
-    python3 -m flask run --host=127.0.0.1 --port=5000 &
+    nohup python3 -m flask run --host=127.0.0.1 --port=5000 >/dev/null 2>&1 &
 else
     echo "❌ Flask not found. Please run setup_dev_env.sh first."
     exit 1
