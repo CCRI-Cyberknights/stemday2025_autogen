@@ -52,8 +52,8 @@ if command -v pipx >/dev/null 2>&1; then
     else
         echo "📦 Installing Flask with pipx..."
         pipx install flask
-        # Ensure markupsafe is present (needed for Flask 3.x)
-        pipx inject flask markupsafe
+        echo "📦 Injecting required Python packages (markdown, markupsafe)..."
+        pipx inject flask markdown markupsafe
     fi
 
 else
