@@ -1,8 +1,4 @@
-# [No sensitive data found here]
-Session start: 2025-06-21 09:15
-Temporary cache: active
-[INFO BLOCK]
-User: ccri_admin
-User: ccri_admin
-Temporary cache: active
-Temporary cache: active
+TEMP=TRUE
+SOURCE=/mnt/data0
+BUNDLE=active
+

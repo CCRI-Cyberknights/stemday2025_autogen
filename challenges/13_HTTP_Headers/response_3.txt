@@ -1,22 +1,18 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:51:58 GMT
-Server: nginx/1.24.0
+Date: Sun, 30 Jun 2025 15:45:07 GMT
+Server: Liber8-Server/2.3.1
 Content-Type: application/json
-Cache-Control: private, no-cache
-X-Powered-By: Python/3.11.4
-X-Flag: CCRI-ZYVY-8627
+Cache-Control: no-cache
+X-Powered-By: Node.js/18.16.0
+X-Flag: CTFX-8421-SRVR
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
-Set-Cookie: sessionid=lsyasna27eit; HttpOnly; Secure
 
+{
+  "status": "ok",
+  "message": "API version 1.2.4 is running.",
+  "notes": "No maintenance scheduled."
+}
 
-<html>
-  <head><title>Liber8 Portal</title></head>
-  <body>
-    <h1>Welcome to Liber8</h1>
-    <p>System maintenance is underway. Some services may be unavailable.</p>
-  </body>
-</html>
+<!-- Debug: API response size 512 bytes -->
 
-
-<!-- Developer note: Remove X-Test headers before release -->

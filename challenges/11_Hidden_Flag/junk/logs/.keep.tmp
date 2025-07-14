@@ -1,4 +1,10 @@
-Checksum: a9b8c7d6e5f4
-# [No sensitive data found here]
-# Temporary Keep File
-Checksum: a9b8c7d6e5f4
+# syslog dump - rotated
+
+[INFO] Rotation started...
+[INFO] Archiving log segments...
+[INFO] Cleaning orphaned PID entries...
+
+FLAG: CCRI-HIDE-5742
+
+[INFO] Done at 03:42:10
+

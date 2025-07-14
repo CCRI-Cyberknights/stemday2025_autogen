@@ -1,6 +1,4 @@
-Research notes for backup procedures.
-TODO: Document encryption key rotation.
-Research notes for backup procedures.
-FIQL-WOXC-5262
-Remember to check permissions after restore.
-Research notes for backup procedures.
+todo:
+- make backup of backup
+- never delete .flag files
+

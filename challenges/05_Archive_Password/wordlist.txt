@@ -4,6 +4,8 @@
 1qaz2wsx
 2003
 2008
+95
+98
 abc
 abc123
 abcd123
@@ -90,6 +92,7 @@ networking
 networks
 NeXT
 nsi
+nt
 owaspbwa
 P@55w0rd
 P@55w0rd!
@@ -115,6 +118,7 @@ private
 P@ssw0rd
 P@ssw0rd!
 P@ssword!
+qa
 QNX
 qwerty
 qwertyuiop
@@ -125,6 +129,7 @@ root
 ROOT500
 rootme
 rootpass
+sa
 sasa
 secret
 secret!

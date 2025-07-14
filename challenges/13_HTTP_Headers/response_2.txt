@@ -1,19 +1,14 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:58:01 GMT
-Server: Liber8-Server/3.0.0-beta
+Date: Sun, 30 Jun 2025 15:45:12 GMT
+Server: Liber8-Server/2.3.1
 Content-Type: text/plain; charset=UTF-8
-Cache-Control: no-store
-X-Powered-By: Ruby on Rails/7.1.0
-X-Flag: COVN-JZXJ-3250
-X-Frame-Options: SAMEORIGIN
-X-Content-Type-Options: nosniff
+Cache-Control: public, max-age=86400
+X-Powered-By: Python/3.11.4
+X-Flag: RESP-1290-CTFX
+X-Frame-Options: DENY
 
+Welcome to the Liber8 data endpoint.
+This endpoint returns plain text responses.
 
-{
-  "status": "ok",
-  "message": "API version 1.2.4 is running.",
-  "notes": "No maintenance scheduled."
-}
+<!-- Developer Debug: X-Flag header injected for testing -->
 
-
-<!-- Debug: API response size 512 bytes -->

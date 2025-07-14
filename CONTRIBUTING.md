@@ -53,27 +53,12 @@ If you’re a CCRI CyberKnights member and want to contribute:
 
 ### ✅ Install Git & Prerequisites
 
-Run this single command to auto-detect your distro and install the required tools:  
+Run these commands in your VM:  
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/CCRI-Cyberknights/stemday2025/main/1_setup_dev_env.sh)"
+sudo apt update
+sudo apt install -y git python3 python3-pip python3-venv python3-markdown python3-scapy exiftool zbar-tools steghide hashcat unzip nmap tshark qrencode
 ```
-
-This script supports **Parrot OS**, **Debian**, **Ubuntu**, and **Linux Mint**.  
-If you’re on another Linux distro (e.g., Arch or Fedora), install the equivalent packages manually:  
-
-- `git python3 python3-pip python3-venv`
-- `python3-markdown python3-scapy`
-- `exiftool zbar-tools steghide hashcat unzip nmap tshark qrencode`
-
-If you want to run `tshark` without `sudo`, add your user to the `wireshark` group:  
-
-```bash
-sudo usermod -aG wireshark $USER
-# Log out and back in for group changes to take effect
-```
-
----
 
 ### ⚙️ Configure Git (First Time Only)
 
