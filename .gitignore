@@ -9,6 +9,7 @@
 !LICENSE
 !pyproject.toml
 !requirements.txt
+!.ccri_ctf_root
 
 # Setup scripts
 !1_setup_dev_env.sh
