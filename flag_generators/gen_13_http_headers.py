@@ -3,9 +3,24 @@
 from pathlib import Path
 import random
 import sys
-from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag
 
-# Predefined header and body variants
+# === Helper: Find Project Root ===
+def find_project_root() -> Path:
+    """
+    Walk up directories until .ccri_ctf_root is found.
+    """
+    dir_path = Path.cwd()
+    for parent in [dir_path] + list(dir_path.parents):
+        if (parent / ".ccri_ctf_root").exists():
+            return parent.resolve()
+    print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
+    sys.exit(1)
+
+# === Resolve Project Root ===
+PROJECT_ROOT = find_project_root()
+
+# === Predefined header and body variants ===
 SERVERS = [
     "Liber8-Server/2.3.1",
     "Liber8-Server/3.0.0-beta",
@@ -73,7 +88,6 @@ HTML_COMMENTS = [
     "<!-- To-do: Update security headers on staging -->"
 ]
 
-
 def generate_http_response(flag: str) -> str:
     """
     Generate a realistic HTTP response string with flag in X-Flag header.
@@ -102,7 +116,6 @@ def generate_http_response(flag: str) -> str:
 
     return "\n".join(headers) + "\n\n" + body + "\n\n" + comment
 
-
 def clean_old_responses(challenge_folder: Path):
     """
     Remove old response_*.txt files from challenge folder.
@@ -112,29 +125,31 @@ def clean_old_responses(challenge_folder: Path):
             old_file.unlink()
             print(f"🗑️ Removed old file: {old_file.name}")
         except Exception as e:
-            print(f"⚠️ Could not delete {old_file.name}: {e}")
-
+            print(f"⚠️ Could not delete {old_file.name}: {e}", file=sys.stderr)
 
 def embed_http_responses(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
     Generate 5 response files with headers, one containing the real flag.
     """
-    challenge_folder.mkdir(parents=True, exist_ok=True)
-    clean_old_responses(challenge_folder)
+    try:
+        challenge_folder.mkdir(parents=True, exist_ok=True)
+        clean_old_responses(challenge_folder)
 
-    all_flags = fake_flags + [real_flag]
-    random.shuffle(all_flags)
+        all_flags = fake_flags + [real_flag]
+        random.shuffle(all_flags)
 
-    for i, flag in enumerate(all_flags, start=1):
-        file_path = challenge_folder / f"response_{i}.txt"
-        response_content = generate_http_response(flag)
-        file_path.write_text(response_content)
+        for i, flag in enumerate(all_flags, start=1):
+            file_path = challenge_folder / f"response_{i}.txt"
+            response_content = generate_http_response(flag)
+            file_path.write_text(response_content)
 
-        if flag == real_flag:
-            print(f"✅ {file_path.name} (REAL flag)")
-        else:
-            print(f"➖ {file_path.name} (decoy)")
-
+            if flag == real_flag:
+                print(f"✅ {file_path.name} (REAL flag)")
+            else:
+                print(f"➖ {file_path.name} (decoy)")
+    except Exception as e:
+        print(f"❌ Failed during HTTP response embedding: {e}", file=sys.stderr)
+        sys.exit(1)
 
 def generate_flag(challenge_folder: Path) -> str:
     """

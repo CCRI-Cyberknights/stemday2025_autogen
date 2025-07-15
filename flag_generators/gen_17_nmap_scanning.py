@@ -5,8 +5,21 @@ import sys
 from pathlib import Path
 from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
-# Default server.py path for admin bundle
-DEFAULT_SERVER_FILE = Path(__file__).parent.parent / "web_version_admin" / "server.py"
+# === Helper: Find Project Root ===
+def find_project_root() -> Path:
+    """
+    Walk up directories until .ccri_ctf_root is found.
+    """
+    dir_path = Path.cwd()
+    for parent in [dir_path] + list(dir_path.parents):
+        if (parent / ".ccri_ctf_root").exists():
+            return parent.resolve()
+    print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
+    sys.exit(1)
+
+# === Resolve Paths ===
+PROJECT_ROOT = find_project_root()
+DEFAULT_SERVER_FILE = PROJECT_ROOT / "web_version_admin" / "server.py"
 
 
 def random_ports(port_range, count):
@@ -19,9 +32,11 @@ def generate_flag(challenge_folder: Path, server_file: Path = DEFAULT_SERVER_FIL
     Update server.py with a new real flag and fake flags.
     Returns the real flag so it can be stored in challenges.json.
     """
+    server_file = server_file.resolve()
+
     if not server_file.exists():
         print(f"❌ ERROR: {server_file} not found.", file=sys.stderr)
-        raise FileNotFoundError(f"server.py not found at {server_file}")
+        sys.exit(1)
 
     try:
         # Pick ports and flags
@@ -52,7 +67,7 @@ def generate_flag(challenge_folder: Path, server_file: Path = DEFAULT_SERVER_FIL
 
         if count == 0:
             print("⚠️ WARNING: No FAKE_FLAGS block found to replace!", file=sys.stderr)
-            raise ValueError("No FAKE_FLAGS block found in server.py")
+            sys.exit(1)
 
         # Backup original file
         backup_file = server_file.with_suffix(".bak")
@@ -72,4 +87,4 @@ def generate_flag(challenge_folder: Path, server_file: Path = DEFAULT_SERVER_FIL
 
     except Exception as e:
         print(f"❌ ERROR during server.py update: {e}", file=sys.stderr)
-        raise
+        sys.exit(1)

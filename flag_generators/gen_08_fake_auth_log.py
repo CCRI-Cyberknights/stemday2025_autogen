@@ -3,51 +3,79 @@
 from pathlib import Path
 import random
 import datetime
-from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
+import sys
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag
+
+# === Helper: Find Project Root ===
+def find_project_root() -> Path:
+    """
+    Walk up directories until .ccri_ctf_root is found.
+    """
+    dir_path = Path.cwd()
+    for parent in [dir_path] + list(dir_path.parents):
+        if (parent / ".ccri_ctf_root").exists():
+            return parent.resolve()
+    print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
+    sys.exit(1)
+
+# === Resolve Project Root ===
+PROJECT_ROOT = find_project_root()
 
 def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
     Generate fake auth.log file with real and fake flags embedded as PIDs.
     """
-    log_path = challenge_folder / "auth.log"
+    try:
+        log_path = challenge_folder / "auth.log"
 
-    # Sample data
-    usernames = ["alice", "bob", "charlie", "dave", "eve"]
-    ip_addresses = [
-        "192.168.1.10", "192.168.1.20", "10.0.0.5", "172.16.0.3", "203.0.113.42",
-        "198.51.100.17", "192.0.2.91", "8.8.8.8", "127.0.0.1"
-    ]
-    auth_methods = ["password", "publickey"]
+        # Ensure challenge folder exists
+        challenge_folder.mkdir(parents=True, exist_ok=True)
 
-    # Combine and shuffle flags
-    all_flags = fake_flags + [real_flag]
-    random.shuffle(all_flags)
+        # Sample data
+        usernames = ["alice", "bob", "charlie", "dave", "eve"]
+        ip_addresses = [
+            "192.168.1.10", "192.168.1.20", "10.0.0.5", "172.16.0.3", "203.0.113.42",
+            "198.51.100.17", "192.0.2.91", "8.8.8.8", "127.0.0.1"
+        ]
+        auth_methods = ["password", "publickey"]
 
-    # Insert flags at random indices
-    lines = []
-    base_time = datetime.datetime.now()
-    flag_insertion_indices = sorted(random.sample(range(50, 230), len(all_flags)))
-    flag_index = 0
+        # Combine and shuffle flags
+        all_flags = fake_flags + [real_flag]
+        random.shuffle(all_flags)
 
-    for i in range(250):
-        timestamp = (base_time - datetime.timedelta(seconds=random.randint(0, 3600))).strftime("%b %d %H:%M:%S")
-        user = random.choice(usernames)
-        ip = random.choice(ip_addresses)
-        method = random.choice(auth_methods)
-        result = "Accepted" if random.random() > 0.2 else "Failed"
+        # Insert flags at random indices
+        lines = []
+        base_time = datetime.datetime.now()
+        flag_insertion_indices = sorted(random.sample(range(50, 230), len(all_flags)))
+        flag_index = 0
 
-        if flag_index < len(flag_insertion_indices) and i == flag_insertion_indices[flag_index]:
-            pid = all_flags[flag_index]
-            flag_index += 1
-        else:
-            pid = str(random.randint(1000, 99999))
+        for i in range(250):
+            timestamp = (base_time - datetime.timedelta(seconds=random.randint(0, 3600))).strftime("%b %d %H:%M:%S")
+            user = random.choice(usernames)
+            ip = random.choice(ip_addresses)
+            method = random.choice(auth_methods)
+            result = "Accepted" if random.random() > 0.2 else "Failed"
 
-        line = f"{timestamp} myhost sshd[{pid}]: {result} {method} for {user} from {ip} port {random.randint(1000, 65000)} ssh2"
-        lines.append(line)
+            if flag_index < len(flag_insertion_indices) and i == flag_insertion_indices[flag_index]:
+                pid = all_flags[flag_index]
+                flag_index += 1
+            else:
+                pid = str(random.randint(1000, 99999))
 
-    # Write to auth.log
-    log_path.write_text("\n".join(lines))
-    print(f"📝 Fake auth.log created with real flag: {real_flag}")
+            line = f"{timestamp} myhost sshd[{pid}]: {result} {method} for {user} from {ip} port {random.randint(1000, 65000)} ssh2"
+            lines.append(line)
+
+        # Write to auth.log
+        log_path.write_text("\n".join(lines))
+        print(f"📝 Fake auth.log created: {log_path.relative_to(PROJECT_ROOT)}")
+        print(f"✅ Real flag: {real_flag}")
+
+    except PermissionError:
+        print(f"❌ Permission denied: Cannot write to {log_path}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"💥 Unexpected error: {e}", file=sys.stderr)
+        sys.exit(1)
 
 def generate_flag(challenge_folder: Path) -> str:
     """

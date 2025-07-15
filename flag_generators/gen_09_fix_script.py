@@ -7,6 +7,21 @@ from flag_generators.flag_helpers import generate_real_flag  # no need for gener
 
 ALL_OPERATORS = ["+", "-", "*", "/"]
 
+# === Helper: Find Project Root ===
+def find_project_root() -> Path:
+    """
+    Walk up directories until .ccri_ctf_root is found.
+    """
+    dir_path = Path.cwd()
+    for parent in [dir_path] + list(dir_path.parents):
+        if (parent / ".ccri_ctf_root").exists():
+            return parent.resolve()
+    print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
+    sys.exit(1)
+
+# === Resolve Project Root ===
+PROJECT_ROOT = find_project_root()
+
 def find_safe_parts_and_operator():
     """
     Randomly choose a correct operator and generate part1/part2
@@ -40,7 +55,7 @@ def find_safe_parts_and_operator():
             else:
                 continue
         except Exception as e:
-            print(f"💥 Error generating parts: {e}")
+            print(f"💥 Error generating parts: {e}", file=sys.stderr)
             continue
 
         # Validate that no other operator produces a 4-digit result
@@ -68,11 +83,14 @@ def embed_flag(challenge_folder: Path, suffix_value: int, correct_op: str, part1
     """
     script_path = challenge_folder / "broken_flag.sh"
 
-    if script_path.exists() and not overwrite:
-        print(f"⚠️ File already exists: {script_path}. Use overwrite=True to replace.")
-        return
-
     try:
+        # Ensure parent directory exists
+        challenge_folder.mkdir(parents=True, exist_ok=True)
+
+        if script_path.exists() and not overwrite:
+            print(f"⚠️ File already exists: {script_path.relative_to(PROJECT_ROOT)}. Use overwrite=True to replace.")
+            return
+
         # Generate wrong operator (not the correct one)
         wrong_ops = [op for op in ALL_OPERATORS if op != correct_op]
         wrong_op = random.choice(wrong_ops)
@@ -92,15 +110,17 @@ code=$((part1 {wrong_op} part2))  # <- wrong math
 echo "Your flag is: CCRI-SCRP-$code"
 """
 
-        challenge_folder.mkdir(parents=True, exist_ok=True)
         script_path.write_text(broken_script)
         script_path.chmod(0o755)
 
-        print(f"📝 broken_flag.sh created in {challenge_folder}")
+        print(f"📝 broken_flag.sh created: {script_path.relative_to(PROJECT_ROOT)}")
         print(f"✅ Correct op = {correct_op}, Broken op = {wrong_op}, Flag = CCRI-SCRP-{suffix_value}")
 
+    except PermissionError:
+        print(f"❌ Permission denied: Cannot write to {script_path}", file=sys.stderr)
+        sys.exit(1)
     except Exception as e:
-        print(f"💥 Failed to write script: {e}")
+        print(f"💥 Failed to write script: {e}", file=sys.stderr)
         sys.exit(1)
 
 def generate_flag(challenge_folder: Path, overwrite=False) -> str:

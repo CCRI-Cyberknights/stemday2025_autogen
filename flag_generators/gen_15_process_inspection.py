@@ -3,7 +3,22 @@
 from pathlib import Path
 import random
 import sys
-from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag
+
+# === Helper: Find Project Root ===
+def find_project_root() -> Path:
+    """
+    Walk up directories until .ccri_ctf_root is found.
+    """
+    dir_path = Path.cwd()
+    for parent in [dir_path] + list(dir_path.parents):
+        if (parent / ".ccri_ctf_root").exists():
+            return parent.resolve()
+    print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
+    sys.exit(1)
+
+# === Resolve Project Root ===
+PROJECT_ROOT = find_project_root()
 
 # Sample users, commands, and args
 USERS = ["root", "user1", "user2", "user3", "daemon", "syslog", "mysql", "postfix", "nobody", "liber8"]
@@ -29,14 +44,11 @@ COMMANDS = [
     "/opt/liber8/bin/siphon --threads 8 --proxy 127.0.0.1:8080"
 ]
 
-
 def random_stat():
     return random.choice(["S", "Ss", "Sl", "Ssl", "R", "R+", "Z", "D"])
 
-
 def random_start_time():
     return f"Jul{random.randint(1, 30):02d}"
-
 
 def random_process(user_override=None, cmd_override=None):
     """
@@ -57,7 +69,6 @@ def random_process(user_override=None, cmd_override=None):
 
     return f"{user:<10}{pid:<6}{cpu:<5}{mem:<5}{vsz:<8}{rss:<7}{tty:<10}{stat:<5}{start:<8}{time:<7}{cmd}"
 
-
 def embed_flags(lines, real_flag, fake_flags):
     """
     Embed 1 real and several fake flags in process commands.
@@ -75,7 +86,6 @@ def embed_flags(lines, real_flag, fake_flags):
     random.shuffle(flag_processes)
     for proc, flag in zip(flag_processes, flags):
         lines.append(random_process("liber8", proc.format(flag)))
-
 
 def generate_ps_dump(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
@@ -102,8 +112,7 @@ def generate_ps_dump(challenge_folder: Path, real_flag: str, fake_flags: list):
 
     except Exception as e:
         print(f"❌ Error writing ps_dump.txt: {e}", file=sys.stderr)
-        raise
-
+        sys.exit(1)
 
 def generate_flag(challenge_folder: Path) -> str:
     """

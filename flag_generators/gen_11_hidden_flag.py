@@ -4,7 +4,22 @@ from pathlib import Path
 import random
 import shutil
 import sys
-from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag
+
+# === Helper: Find Project Root ===
+def find_project_root() -> Path:
+    """
+    Walk up directories until .ccri_ctf_root is found.
+    """
+    dir_path = Path.cwd()
+    for parent in [dir_path] + list(dir_path.parents):
+        if (parent / ".ccri_ctf_root").exists():
+            return parent.resolve()
+    print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
+    sys.exit(1)
+
+# === Resolve Project Root ===
+PROJECT_ROOT = find_project_root()
 
 # Fixed folder layout
 FOLDERS_AND_FILES = {
@@ -77,14 +92,9 @@ def generate_junk_for_file(file_name: str, flag: str = None) -> str:
     optionally embedding a flag.
     """
     snippets = FILE_BASED_JUNK.get(file_name, ["# Generic placeholder content"])
-
-    # Create junk content
     lines = random.choices(snippets, k=random.randint(3, 7))
-
-    # Embed flag (or placeholder if no flag)
     insert_pos = random.randint(0, len(lines))
     lines.insert(insert_pos, flag if flag else "# [No sensitive data found here]")
-
     return "\n".join(lines)
 
 def create_folder_structure(base_dir: Path, real_flag: str, fake_flags: list):
@@ -93,16 +103,14 @@ def create_folder_structure(base_dir: Path, real_flag: str, fake_flags: list):
     """
     try:
         if base_dir.exists():
-            print(f"⚠️ Folder {base_dir} already exists. Cleaning up...")
+            print(f"⚠️ Folder {base_dir.relative_to(PROJECT_ROOT)} already exists. Cleaning up...")
             shutil.rmtree(base_dir)
         base_dir.mkdir(parents=True, exist_ok=True)
     except Exception as e:
-        print(f"❌ Failed to prepare folder structure: {e}")
+        print(f"❌ Failed to prepare folder structure: {e}", file=sys.stderr)
         sys.exit(1)
 
     all_files = []
-
-    # Create folders and files
     try:
         for folder_name, files in FOLDERS_AND_FILES.items():
             folder_path = base_dir / folder_name
@@ -111,7 +119,7 @@ def create_folder_structure(base_dir: Path, real_flag: str, fake_flags: list):
                 file_path = folder_path / file_name
                 all_files.append(file_path)
     except Exception as e:
-        print(f"❌ Error while creating files: {e}")
+        print(f"❌ Error while creating files: {e}", file=sys.stderr)
         sys.exit(1)
 
     # Randomly select 5 files for flags
@@ -119,7 +127,6 @@ def create_folder_structure(base_dir: Path, real_flag: str, fake_flags: list):
     real_flag_file = flag_files[0]
     fake_flag_files = flag_files[1:]
 
-    # Write content to all files (create or overwrite)
     for file_path in all_files:
         try:
             if file_path == real_flag_file:
@@ -131,7 +138,7 @@ def create_folder_structure(base_dir: Path, real_flag: str, fake_flags: list):
                 content = generate_junk_for_file(file_path.name)
             file_path.write_text(content)
         except Exception as e:
-            print(f"❌ Failed to write to {file_path}: {e}")
+            print(f"❌ Failed to write to {file_path.relative_to(PROJECT_ROOT)}: {e}", file=sys.stderr)
 
     print(f"✅ Real flag hidden in: {real_flag_file.relative_to(base_dir)}")
     print("📁 Folder structure created with embedded flags.")
@@ -144,7 +151,6 @@ def generate_flag(challenge_folder: Path) -> str:
     real_flag = generate_real_flag()
     fake_flags = list({generate_fake_flag() for _ in range(4)})
 
-    # Ensure no accidental duplicate
     while real_flag in fake_flags:
         real_flag = generate_real_flag()
 

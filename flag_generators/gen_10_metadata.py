@@ -4,9 +4,25 @@ from pathlib import Path
 import random
 import subprocess
 import sys
+import shutil
 from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
-GENERATOR_DIR = Path(__file__).parent
+# === Helper: Find Project Root ===
+def find_project_root() -> Path:
+    """
+    Walk up directories until .ccri_ctf_root is found.
+    """
+    dir_path = Path.cwd()
+    for parent in [dir_path] + list(dir_path.parents):
+        if (parent / ".ccri_ctf_root").exists():
+            return parent.resolve()
+    print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
+    sys.exit(1)
+
+# === Resolve Project Root ===
+PROJECT_ROOT = find_project_root()
+
+GENERATOR_DIR = Path(__file__).parent.resolve()
 
 def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
@@ -16,18 +32,21 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
     dest_image = challenge_folder / "capybara.jpg"
 
     # === Check if exiftool is installed ===
-    if not shutil.which("exiftool"):
-        print("❌ exiftool is not installed. Please install it first.")
+    if shutil.which("exiftool") is None:
+        print("❌ exiftool is not installed. Please install it first (e.g., sudo apt install libimage-exiftool-perl).", file=sys.stderr)
         sys.exit(1)
+
+    # === Ensure challenge folder exists ===
+    challenge_folder.mkdir(parents=True, exist_ok=True)
 
     # === Copy clean capybara.jpg into challenge folder ===
     try:
+        if not source_image.exists():
+            raise FileNotFoundError(f"❌ Source image not found: {source_image.relative_to(PROJECT_ROOT)}")
         dest_image.write_bytes(source_image.read_bytes())
-    except FileNotFoundError:
-        print(f"❌ Source image not found: {source_image}")
-        sys.exit(1)
+        print(f"📂 Copied {source_image.name} to {challenge_folder.relative_to(PROJECT_ROOT)}")
     except Exception as e:
-        print(f"❌ Failed to copy image: {e}")
+        print(f"❌ Failed to copy image: {e}", file=sys.stderr)
         sys.exit(1)
 
     # === Assign flags to metadata fields ===
@@ -43,7 +62,7 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
     print("📝 Embedding flags into EXIF metadata...")
     try:
         for tag, value in metadata_tags.items():
-            result = subprocess.run(
+            subprocess.run(
                 ["exiftool", f"-{tag}={value}", str(dest_image)],
                 check=True,
                 stdout=subprocess.DEVNULL,
@@ -51,10 +70,10 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
                 text=True
             )
     except subprocess.CalledProcessError as e:
-        print(f"❌ exiftool failed: {e.stderr.strip()}")
+        print(f"❌ exiftool failed: {e.stderr.strip()}", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
-        print(f"❌ Unexpected error while embedding metadata: {e}")
+        print(f"❌ Unexpected error while embedding metadata: {e}", file=sys.stderr)
         sys.exit(1)
 
     # === Remove exiftool backup file (capybara.jpg_original) ===
@@ -64,7 +83,7 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
             backup_file.unlink()
             print("🗑️ Cleaned up exiftool backup file.")
         except Exception as e:
-            print(f"⚠️ Could not remove backup file: {e}")
+            print(f"⚠️ Could not remove backup file: {e}", file=sys.stderr)
 
     print(f"✅ Embedded real flag in UserComment: {real_flag}")
 

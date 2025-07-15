@@ -4,7 +4,22 @@ from pathlib import Path
 import random
 import subprocess
 import sys
-from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag
+
+# === Helper: Find Project Root ===
+def find_project_root() -> Path:
+    """
+    Walk up directories until .ccri_ctf_root is found.
+    """
+    dir_path = Path.cwd()
+    for parent in [dir_path] + list(dir_path.parents):
+        if (parent / ".ccri_ctf_root").exists():
+            return parent.resolve()
+    print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
+    sys.exit(1)
+
+# === Resolve Project Root ===
+PROJECT_ROOT = find_project_root()
 
 def check_qrencode_installed():
     """Verify qrencode is installed, or exit with error."""
@@ -21,17 +36,17 @@ def create_qr_code(output_file: Path, text: str):
     try:
         subprocess.run(["qrencode", "-o", str(output_file), text], check=True)
     except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to generate QR code: {e}")
+        print(f"❌ Failed to generate QR code: {e}", file=sys.stderr)
         sys.exit(1)
 
 def clean_qr_codes(folder: Path):
     """Remove any old QR codes in the challenge folder."""
-    for qr_file in folder.glob("qr_*.png"):
-        try:
+    try:
+        for qr_file in folder.glob("qr_*.png"):
             qr_file.unlink()
             print(f"🗑️ Removed old file: {qr_file.name}")
-        except Exception as e:
-            print(f"⚠️ Could not delete {qr_file.name}: {e}")
+    except Exception as e:
+        print(f"⚠️ Could not delete QR code(s) in {folder.relative_to(PROJECT_ROOT)}: {e}", file=sys.stderr)
 
 def embed_flags_as_qr(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
@@ -43,7 +58,7 @@ def embed_flags_as_qr(challenge_folder: Path, real_flag: str, fake_flags: list):
     all_flags = fake_flags + [real_flag]
     random.shuffle(all_flags)
 
-    print("🎯 Generating QR codes in:", challenge_folder)
+    print(f"🎯 Generating QR codes in: {challenge_folder.relative_to(PROJECT_ROOT)}")
     for i, flag in enumerate(all_flags, start=1):
         qr_file = challenge_folder / f"qr_{i:02}.png"
         create_qr_code(qr_file, flag)

@@ -7,8 +7,26 @@ except ImportError:
 
 import random
 import os
+import sys
 from pathlib import Path
-from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag
+
+
+# === Helper: Find Project Root ===
+def find_project_root() -> Path:
+    """
+    Walk up directories until .ccri_ctf_root is found.
+    """
+    dir_path = Path.cwd()
+    for parent in [dir_path] + list(dir_path.parents):
+        if (parent / ".ccri_ctf_root").exists():
+            return parent.resolve()
+    print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
+    sys.exit(1)
+
+
+# === Resolve Paths ===
+PROJECT_ROOT = find_project_root()
 
 
 def http_packet(src, dst, sport, dport, payload):
@@ -68,6 +86,9 @@ def generate_flag(challenge_folder: Path) -> str:
     1 real flag and 4 fake flags. Return the real flag.
     """
     try:
+        challenge_folder = PROJECT_ROOT / challenge_folder
+        challenge_folder.mkdir(parents=True, exist_ok=True)
+
         # === Generate flags ===
         real_flag = generate_real_flag()
         fake_flags = set()
@@ -114,8 +135,8 @@ def generate_flag(challenge_folder: Path) -> str:
         print(f"   🎭 Fake flags: {', '.join(fake_flags)}")
         print(f"📦 Total packets: {len(packets)}")
 
-        return real_flag  # ✅ Needed for challenges.json update
+        return real_flag
 
     except Exception as e:
-        print(f"❌ ERROR generating traffic.pcap: {e}")
+        print(f"❌ ERROR generating traffic.pcap: {e}", file=sys.stderr)
         raise

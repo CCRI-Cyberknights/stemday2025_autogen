@@ -7,8 +7,23 @@ import base64
 import sys
 from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag
 
-# Path to master wordlist template (dev copy in flag_generators/)
-WORDLIST_TEMPLATE = Path(__file__).parent / "wordlist.txt"
+# === Helper: Find Project Root ===
+def find_project_root() -> Path:
+    """
+    Walk up directories until .ccri_ctf_root is found.
+    """
+    dir_path = Path.cwd()
+    for parent in [dir_path] + list(dir_path.parents):
+        if (parent / ".ccri_ctf_root").exists():
+            return parent.resolve()
+    print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
+    sys.exit(1)
+
+# === Resolve Project Root ===
+PROJECT_ROOT = find_project_root()
+
+# Path to master wordlist template (relative to project root)
+WORDLIST_TEMPLATE = PROJECT_ROOT / "flag_generators" / "wordlist.txt"
 
 def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
@@ -17,11 +32,11 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
     try:
         # Check if challenge folder exists
         if not challenge_folder.exists():
-            raise FileNotFoundError(f"❌ Challenge folder not found: {challenge_folder}")
+            raise FileNotFoundError(f"❌ Challenge folder not found: {challenge_folder.relative_to(PROJECT_ROOT)}")
 
         # Check if wordlist template exists
         if not WORDLIST_TEMPLATE.exists():
-            raise FileNotFoundError(f"❌ Wordlist template missing: {WORDLIST_TEMPLATE}")
+            raise FileNotFoundError(f"❌ Wordlist template missing: {WORDLIST_TEMPLATE.relative_to(PROJECT_ROOT)}")
 
         # Load master wordlist
         all_passwords = WORDLIST_TEMPLATE.read_text().splitlines()
@@ -63,7 +78,7 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
 
         # Clean up temporary file
         encoded_file.unlink()
-        print(f"🗝️ wordlist.txt and 🔒 secret.zip created with correct password: {correct_password}")
+        print(f"🗝️ {wordlist_file.relative_to(PROJECT_ROOT)} and 🔒 {zip_file.relative_to(PROJECT_ROOT)} created with correct password: {correct_password}")
 
     except FileNotFoundError as e:
         print(e)

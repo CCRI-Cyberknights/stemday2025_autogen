@@ -6,24 +6,38 @@ import random
 import sys
 from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag
 
-GENERATOR_DIR = Path(__file__).parent
+# === Helper: Find Project Root ===
+def find_project_root() -> Path:
+    """
+    Walk up directories until .ccri_ctf_root is found.
+    """
+    dir_path = Path.cwd()
+    for parent in [dir_path] + list(dir_path.parents):
+        if (parent / ".ccri_ctf_root").exists():
+            return parent.resolve()
+    print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
+    sys.exit(1)
+
+# === Resolve Paths ===
+PROJECT_ROOT = find_project_root()
+GENERATOR_DIR = PROJECT_ROOT / "flag_generators"
+SOURCE_IMAGE = GENERATOR_DIR / "squirrel.jpg"
 
 def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list, passphrase="password"):
     """
     Copy pristine squirrel.jpg into the challenge folder and embed real + fake flags.
     """
-    source_image = GENERATOR_DIR / "squirrel.jpg"
     dest_image = challenge_folder / "squirrel.jpg"
     hidden_file = challenge_folder / "hidden_flags.txt"
 
     try:
-        # Sanity checks
-        if not source_image.exists():
-            raise FileNotFoundError(f"❌ Source image not found: {source_image}")
+        # Sanity check
+        if not SOURCE_IMAGE.exists():
+            raise FileNotFoundError(f"❌ Source image not found: {SOURCE_IMAGE.relative_to(PROJECT_ROOT)}")
 
         # Copy clean squirrel.jpg into challenge folder
-        dest_image.write_bytes(source_image.read_bytes())
-        print(f"📂 Copied {source_image.name} to {challenge_folder.name}")
+        dest_image.write_bytes(SOURCE_IMAGE.read_bytes())
+        print(f"📂 Copied {SOURCE_IMAGE.name} to {challenge_folder.relative_to(PROJECT_ROOT)}")
 
         # Combine and shuffle flags
         all_flags = fake_flags + [real_flag]

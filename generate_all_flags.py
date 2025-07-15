@@ -6,12 +6,40 @@ from pathlib import Path
 import shutil
 import sys
 
-# === CONFIGURATION ===
-BASE_DIR = Path(__file__).parent.resolve()
-CHALLENGES_JSON = BASE_DIR / "web_version_admin/challenges.json"
-CHALLENGES_DIR = BASE_DIR / "challenges/"
-DRYRUN_DIR = BASE_DIR / "dryrun_output/"
-SERVER_PY = BASE_DIR / "web_version_admin/server.py"  # ✅ Lock to stemday2025
+# === Helper: Find Project Root ===
+def find_project_root():
+    """
+    Walk up from current directory until .ccri_ctf_root is found.
+    """
+    dir_path = Path.cwd()
+    for parent in [dir_path] + list(dir_path.parents):
+        if (parent / ".ccri_ctf_root").exists():
+            return parent.resolve()
+    print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
+    sys.exit(1)
+
+PROJECT_ROOT = find_project_root()
+print(f"📂 Project root found at: {PROJECT_ROOT}")
+
+# === Paths (project-aware) ===
+WEB_ADMIN_DIR = PROJECT_ROOT / "web_version_admin"
+CHALLENGES_JSON = WEB_ADMIN_DIR / "challenges.json"
+CHALLENGES_DIR = PROJECT_ROOT / "challenges/"
+DRYRUN_DIR = PROJECT_ROOT / "dryrun_output/"
+SERVER_PY = WEB_ADMIN_DIR / "server.py"  # ✅ Lock to admin version
+
+# === Validate critical paths ===
+required_paths = [
+    WEB_ADMIN_DIR,
+    CHALLENGES_JSON,
+    CHALLENGES_DIR,
+]
+missing = [str(p.relative_to(PROJECT_ROOT)) for p in required_paths if not p.exists()]
+if missing:
+    print("❌ ERROR: Missing required files/directories:")
+    for m in missing:
+        print(f"   - {m}")
+    sys.exit(1)
 
 # === Import all generators ===
 from flag_generators.gen_01_stego import generate_flag as gen_01
@@ -61,7 +89,7 @@ def main(dry_run=False):
         with open(CHALLENGES_JSON, "r") as f:
             challenges = json.load(f)
     except Exception as e:
-        print(f"❌ ERROR: Could not read {CHALLENGES_JSON}: {e}")
+        print(f"❌ ERROR: Could not read {CHALLENGES_JSON.relative_to(PROJECT_ROOT)}: {e}")
         sys.exit(1)
 
     if dry_run:
@@ -71,7 +99,7 @@ def main(dry_run=False):
         # Backup challenges.json before modifying
         backup_file = CHALLENGES_JSON.with_suffix(".json.bak")
         shutil.copy2(CHALLENGES_JSON, backup_file)
-        print(f"📦 Backup created: {backup_file}")
+        print(f"📦 Backup created: {backup_file.relative_to(PROJECT_ROOT)}")
 
     success_count = 0
     fail_count = 0
@@ -99,7 +127,7 @@ def main(dry_run=False):
 
                 if dry_run:
                     print(f"✅ [Dry-Run] {challenge_id}: Real flag = {real_flag}")
-                    print(f"📂 Would write files to: {target_folder}\n")
+                    print(f"📂 Would write files to: {target_folder.relative_to(PROJECT_ROOT)}\n")
                 else:
                     challenge["flag"] = real_flag
                     print(f"✅ {challenge_id}: Real flag = {real_flag}\n")
@@ -112,7 +140,7 @@ def main(dry_run=False):
             fail_count += 1
 
     if dry_run:
-        print(f"✅ Dry-run complete. No changes made to live challenges or challenges.json.")
+        print("✅ Dry-run complete. No changes made to live challenges or challenges.json.")
     else:
         # Save updated challenges.json
         with open(CHALLENGES_JSON, "w") as f:
