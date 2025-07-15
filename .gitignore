@@ -9,11 +9,12 @@
 !LICENSE
 !pyproject.toml
 !requirements.txt
+!.ccri_ctf_root
 
 # Setup scripts
 !1_setup_dev_env.sh
-!2_start_web_hub.sh
-!3_stop_web_hub.sh
+!start_web_hub.sh
+!stop_web_hub.sh
 
 # Docker files
 !Dockerfile

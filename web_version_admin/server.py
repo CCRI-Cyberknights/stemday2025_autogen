@@ -1,9 +1,9 @@
 try:
     # Flask 2.x: Markup is part of flask
-    from flask import Flask, render_template, request, jsonify, Markup
+    from flask import Flask, render_template, request, jsonify, send_from_directory, Markup
 except ImportError:
     # Flask 3.x: Markup moved to markupsafe
-    from flask import Flask, render_template, request, jsonify
+    from flask import Flask, render_template, request, jsonify, send_from_directory
     from markupsafe import Markup
 
 import subprocess
@@ -13,24 +13,49 @@ import base64
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-# New import for Markdown support
 import markdown
 
-app = Flask(__name__)
+# === Helper: Find Project Root ===
+def find_project_root(marker=".ccri_ctf_root"):
+    """Walk upwards to locate the project root by marker file."""
+    dir_path = os.path.abspath(os.path.dirname(__file__))
+    while dir_path != "/":
+        if os.path.isfile(os.path.join(dir_path, marker)):
+            return dir_path
+        dir_path = os.path.dirname(dir_path)
+    raise RuntimeError(f"❌ Could not find project root marker '{marker}'. Are you inside the CTF repo?")
+
+# === Resolve BASE DIRECTORIES ===
+PROJECT_ROOT = find_project_root()
+WEB_ADMIN_DIR = os.path.join(PROJECT_ROOT, "web_version_admin")
+CHALLENGES_DIR = os.path.join(PROJECT_ROOT, "challenges")
+
+CHALLENGES_JSON_PATH = os.path.join(WEB_ADMIN_DIR, "challenges.json")
+TEMPLATES_DIR = os.path.join(WEB_ADMIN_DIR, "templates")
+STATIC_DIR = os.path.join(WEB_ADMIN_DIR, "static")
+
+app = Flask(__name__, template_folder=TEMPLATES_DIR, static_folder=STATIC_DIR)
 
 # === Hardcoded XOR Key ===
 XOR_KEY = "CTF4EVER"
 
 # === Load student challenges.json ===
 try:
-    with open('challenges.json', 'r') as f:
-        challenges = json.load(f)
+    with open(CHALLENGES_JSON_PATH, 'r', encoding='utf-8') as f:
+        raw_challenges = json.load(f)
 except FileNotFoundError:
-    print("❌ ERROR: Could not find 'challenges.json' in the current directory!")
+    print(f"❌ ERROR: Could not find 'challenges.json' at {CHALLENGES_JSON_PATH}")
     exit(1)
 except json.JSONDecodeError:
-    print("❌ ERROR: 'challenges.json' contains invalid JSON!")
+    print(f"❌ ERROR: 'challenges.json' contains invalid JSON!")
     exit(1)
+
+# Normalize challenge folder paths relative to WEB_ADMIN_DIR
+challenges = {}
+for cid, meta in raw_challenges.items():
+    abs_folder_path = os.path.normpath(os.path.join(WEB_ADMIN_DIR, meta["folder"]))
+    meta["folder"] = abs_folder_path
+    challenges[cid] = meta
 
 # === Helper: XOR Decode ===
 def xor_decode(encoded_base64, key):
@@ -62,7 +87,6 @@ def challenge_view(challenge_id):
         try:
             with open(readme_path, 'r', encoding='utf-8') as f:
                 raw_readme = f.read()
-                # Convert Markdown to HTML
                 readme_html = Markup(markdown.markdown(raw_readme))
         except Exception as e:
             readme_html = f"<p><strong>Error loading README:</strong> {e}</p>"
@@ -82,6 +106,15 @@ def challenge_view(challenge_id):
         readme=readme_html,
         files=file_list
     )
+
+@app.route('/challenge_file/<challenge_id>/<path:filename>')
+def get_challenge_file(challenge_id, filename):
+    """Serve files from the challenge folder."""
+    if challenge_id not in challenges:
+        return "Challenge not found", 404
+
+    folder = challenges[challenge_id]['folder']
+    return send_from_directory(folder, filename)
 
 @app.route('/submit_flag/<challenge_id>', methods=['POST'])
 def submit_flag(challenge_id):
@@ -113,6 +146,33 @@ def open_folder(challenge_id):
         except FileNotFoundError:
             subprocess.Popen(['gio', 'open', folder])
         return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/run_script/<challenge_id>', methods=['POST'])
+def run_script(challenge_id):
+    """Launch the helper script for this challenge in a terminal."""
+    if challenge_id not in challenges:
+        return jsonify({"status": "error", "message": "Challenge not found"}), 404
+
+    folder = challenges[challenge_id]['folder']
+    script_name = challenges[challenge_id]['script']
+    script_path = os.path.join(folder, script_name)
+
+    if not os.path.isfile(script_path):
+        return jsonify({"status": "error", "message": f"Script '{script_name}' not found."}), 404
+
+    try:
+        # Prefer x-terminal-emulator, fallback to common terminals
+        terminals = ["x-terminal-emulator", "gnome-terminal", "konsole", "xfce4-terminal", "lxterminal"]
+        for term in terminals:
+            if subprocess.call(["which", term], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0:
+                subprocess.Popen([term, "--working-directory", folder, "-e", f"bash \"{script_path}\""])
+                return jsonify({"status": "success"})
+
+        # No terminal found
+        return jsonify({"status": "error", "message": "No terminal emulator found on this system."}), 500
+
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
