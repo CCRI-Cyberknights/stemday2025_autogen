@@ -3,7 +3,7 @@
 from pathlib import Path
 import random
 import sys
-from flag_generators.flag_helpers import generate_real_flag  # no need for generate_fake_flag here
+from flag_generators.flag_helpers import generate_real_flag  # ✅ no need for generate_fake_flag here
 
 ALL_OPERATORS = ["+", "-", "*", "/"]
 
@@ -22,21 +22,20 @@ def find_project_root() -> Path:
 # === Resolve Project Root ===
 PROJECT_ROOT = find_project_root()
 
+
 def find_safe_parts_and_operator():
     """
-    Randomly choose a correct operator and generate part1/part2
-    such that only this operator produces a flag-looking number.
+    Keep trying until only 1 operator gives a 4-digit result.
+    All others must give results outside 1000–9999.
     """
-    attempts = 0
+    attempt = 0
     while True:
+        attempt += 1
         correct_op = random.choice(ALL_OPERATORS)
-        attempts += 1
-
-        # Pick target value for CCRI flag suffix
         target_value = random.randint(1000, 9999)
 
-        # Generate parts based on chosen operator
         try:
+            # Generate parts based on chosen operator
             if correct_op == "+":
                 part1 = random.randint(100, target_value - 100)
                 part2 = target_value - part1
@@ -46,7 +45,7 @@ def find_safe_parts_and_operator():
             elif correct_op == "*":
                 factors = [i for i in range(2, 100) if target_value % i == 0]
                 if not factors:
-                    continue  # Skip if no factors
+                    continue  # Retry if no factors
                 part2 = random.choice(factors)
                 part1 = target_value // part2
             elif correct_op == "/":
@@ -54,28 +53,32 @@ def find_safe_parts_and_operator():
                 part1 = target_value * part2
             else:
                 continue
+
+            # Check results for all operators
+            four_digit_ops = []
+            for op in ALL_OPERATORS:
+                try:
+                    result = eval(f"{part1} {op} {part2}")
+                    if isinstance(result, int) and 1000 <= result <= 9999:
+                        four_digit_ops.append(op)
+                except ZeroDivisionError:
+                    continue
+
+            # Progress heartbeat every 100 attempts
+            if attempt % 100 == 0:
+                print(f"⏳ {attempt} attempts so far... "
+                      f"Found {len(four_digit_ops)} ops producing 4-digit results.")
+
+            # Success condition: only 1 operator gives 4-digit result
+            if four_digit_ops == [correct_op]:
+                print(f"✅ Found valid combination after {attempt} attempts!")
+                return correct_op, part1, part2, target_value
+
         except Exception as e:
-            print(f"💥 Error generating parts: {e}", file=sys.stderr)
-            continue
+            if attempt % 100 == 0:
+                print(f"⚠️ Attempt {attempt} error: {e}", file=sys.stderr)
+            continue  # Try again on failure
 
-        # Validate that no other operator produces a 4-digit result
-        safe = True
-        for op in ALL_OPERATORS:
-            if op == correct_op:
-                continue
-            try:
-                result = eval(f"{part1} {op} {part2}")
-                if isinstance(result, int) and 1000 <= result <= 9999:
-                    safe = False
-                    break
-            except ZeroDivisionError:
-                continue
-
-        if safe:
-            return correct_op, part1, part2, target_value
-
-        if attempts > 200:
-            raise ValueError("❌ Failed to find safe parts and operator after many attempts.")
 
 def embed_flag(challenge_folder: Path, suffix_value: int, correct_op: str, part1: int, part2: int, overwrite=False):
     """
@@ -122,6 +125,7 @@ echo "Your flag is: CCRI-SCRP-$code"
     except Exception as e:
         print(f"💥 Failed to write script: {e}", file=sys.stderr)
         sys.exit(1)
+
 
 def generate_flag(challenge_folder: Path, overwrite=False) -> str:
     """
