@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
-from scapy.all import *
+try:
+    from scapy.all import *
+except ImportError:
+    print("❌ Scapy is not installed. Run: pip install scapy")
+    exit(1)
+
 import random
 import os
 from pathlib import Path
-from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ import fixed
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
+
 
 def http_packet(src, dst, sport, dport, payload):
     """
@@ -13,6 +19,7 @@ def http_packet(src, dst, sport, dport, payload):
     tcp = TCP(sport=sport, dport=dport, flags="PA", seq=random.randint(1000, 5000))
     raw = Raw(load=payload)
     return ip / tcp / raw
+
 
 def http_conversation(src, dst, flag=None, noise=False, real_flag=False):
     """
@@ -54,49 +61,61 @@ def http_conversation(src, dst, flag=None, noise=False, real_flag=False):
     packets.append(http_packet(dst, src, dport, sport, response))
     return packets
 
+
 def generate_flag(challenge_folder: Path) -> str:
     """
     Generate traffic.pcap in the challenge folder with
     1 real flag and 4 fake flags. Return the real flag.
     """
-    # === Generate flags ===
-    real_flag = generate_real_flag()
-    fake_flags = []
-    while len(fake_flags) < 4:
-        fake = generate_fake_flag()
-        if fake != real_flag and fake not in fake_flags:
-            fake_flags.append(fake)
+    try:
+        # === Generate flags ===
+        real_flag = generate_real_flag()
+        fake_flags = set()
+        while len(fake_flags) < 4:
+            fake = generate_fake_flag()
+            if fake != real_flag:
+                fake_flags.add(fake)
+        fake_flags = list(fake_flags)
 
-    # === Generate traffic ===
-    packets = []
+        # === Generate traffic ===
+        packets = []
 
-    # Random noise traffic (~150 conversations)
-    for _ in range(150):
-        src = f"10.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(1,254)}"
-        dst = f"10.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(1,254)}"
-        packets.extend(http_conversation(src, dst, noise=True))
+        # Random noise traffic (~150 conversations)
+        for _ in range(150):
+            src = f"10.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(1,254)}"
+            dst = f"10.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(1,254)}"
+            packets.extend(http_conversation(src, dst, noise=True))
 
-    # Embed fake flags
-    for fake in fake_flags:
-        src = f"172.16.{random.randint(0,255)}.{random.randint(1,254)}"
-        dst = f"172.16.{random.randint(0,255)}.{random.randint(1,254)}"
-        packets.extend(http_conversation(src, dst, flag=fake))
+        # Embed fake flags
+        for fake in fake_flags:
+            src = f"172.16.{random.randint(0,255)}.{random.randint(1,254)}"
+            dst = f"172.16.{random.randint(0,255)}.{random.randint(1,254)}"
+            packets.extend(http_conversation(src, dst, flag=fake))
 
-    # Embed the real flag (header only, no hint in body)
-    src = "192.168.50.10"
-    dst = "192.168.50.20"
-    packets.extend(http_conversation(src, dst, flag=real_flag, real_flag=True))
+        # Embed the real flag (header only, no hint in body)
+        src = "192.168.50.10"
+        dst = "192.168.50.20"
+        packets.extend(http_conversation(src, dst, flag=real_flag, real_flag=True))
 
-    # Shuffle packets for realism
-    random.shuffle(packets)
+        # Shuffle packets for realism
+        random.shuffle(packets)
 
-    # === Write PCAP ===
-    output_file = challenge_folder / "traffic.pcap"
-    wrpcap(str(output_file), packets)
+        # === Write PCAP ===
+        output_file = challenge_folder / "traffic.pcap"
+        if output_file.exists():
+            backup_file = output_file.with_suffix(".pcap.bak")
+            output_file.rename(backup_file)
+            print(f"📂 Existing traffic.pcap backed up as {backup_file}")
 
-    print(f"✅ traffic.pcap generated in {challenge_folder}")
-    print(f"   🏁 Real flag: {real_flag}")
-    print(f"   🎭 Fake flags: {', '.join(fake_flags)}")
-    print(f"📦 Total packets: {len(packets)}")
+        wrpcap(str(output_file), packets)
 
-    return real_flag  # ✅ Needed for challenges.json update
+        print(f"✅ traffic.pcap generated in {challenge_folder}")
+        print(f"   🏁 Real flag: {real_flag}")
+        print(f"   🎭 Fake flags: {', '.join(fake_flags)}")
+        print(f"📦 Total packets: {len(packets)}")
+
+        return real_flag  # ✅ Needed for challenges.json update
+
+    except Exception as e:
+        print(f"❌ ERROR generating traffic.pcap: {e}")
+        raise

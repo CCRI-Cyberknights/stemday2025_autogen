@@ -3,7 +3,8 @@
 from pathlib import Path
 import random
 import subprocess
-from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
+import sys
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag
 
 def generate_c_source(real_flag: str, fake_flags: list) -> str:
     """
@@ -16,9 +17,9 @@ def generate_c_source(real_flag: str, fake_flags: list) -> str:
         "%%%%%%%//////??????^^^^^*****&&&&&"
     ]
     # Generate junk binary noise
-    binary_junk = "{0}".format(", ".join(str(random.randint(0, 255)) for _ in range(600)))
+    binary_junk = ", ".join(str(random.randint(0, 255)) for _ in range(600))
 
-    c_source = f"""
+    return f"""
 #include <stdio.h>
 #include <string.h>
 
@@ -50,27 +51,41 @@ int main() {{
     return 0;
 }}
 """
-    return c_source
 
 def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
     Generate C source, compile it, and place binary in challenge folder.
     """
-    # Paths
-    c_file = challenge_folder / "hidden_flag.c"
-    binary_file = challenge_folder / "hidden_flag"
+    try:
+        if not challenge_folder.exists():
+            raise FileNotFoundError(f"❌ Challenge folder does not exist: {challenge_folder}")
 
-    # Generate C source
-    c_source = generate_c_source(real_flag, fake_flags)
-    c_file.write_text(c_source)
+        # Paths
+        c_file = challenge_folder / "hidden_flag.c"
+        binary_file = challenge_folder / "hidden_flag"
 
-    # Compile C source
-    subprocess.run(["gcc", str(c_file), "-o", str(binary_file)], check=True)
+        # Generate C source
+        c_source = generate_c_source(real_flag, fake_flags)
+        c_file.write_text(c_source)
+        print(f"📄 C source created: {c_file}")
 
-    # Optionally remove C source file (or keep for debugging)
-    c_file.unlink()
+        # Compile C source
+        result = subprocess.run(
+            ["gcc", str(c_file), "-o", str(binary_file)],
+            capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"❌ GCC failed:\n{result.stderr.strip()}")
 
-    print(f"🔨 Compiled hidden_flag binary with real flag: {real_flag}")
+        print(f"🔨 Compiled binary: {binary_file}")
+
+        # Cleanup source file
+        c_file.unlink()
+        print(f"🧹 Cleaned up source file: {c_file}")
+
+    except Exception as e:
+        print(f"💥 ERROR: {e}")
+        sys.exit(1)
 
 def generate_flag(challenge_folder: Path) -> str:
     """

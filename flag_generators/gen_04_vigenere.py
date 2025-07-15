@@ -2,7 +2,8 @@
 
 from pathlib import Path
 import random
-from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
+import sys
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag
 
 VIGENERE_KEY = "login"
 
@@ -30,30 +31,42 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
     cipher_file = challenge_folder / "cipher.txt"
 
-    # Combine and shuffle flags
-    all_flags = fake_flags + [real_flag]
-    random.shuffle(all_flags)
+    try:
+        # Check that folder exists
+        if not challenge_folder.exists():
+            raise FileNotFoundError(f"❌ Challenge folder not found: {challenge_folder}")
 
-    # Encrypt each flag
-    encrypted_flags = [vigenere_encrypt(flag, VIGENERE_KEY) for flag in all_flags]
+        # Combine and shuffle flags
+        all_flags = fake_flags + [real_flag]
+        random.shuffle(all_flags)
 
-    # Write to cipher.txt
-    preamble = (
-        "Agency decrypted several possible code fragments from the recovered file.\n\n"
-        "Here are the extracted flag-like values:\n"
-    )
-    postamble = (
-        "\nOnly one of these follows the official agency flag format.\n\n"
-        "Cross-check carefully before submitting."
-    )
+        # Encrypt each flag
+        encrypted_flags = [vigenere_encrypt(flag, VIGENERE_KEY) for flag in all_flags]
 
-    cipher_file.write_text(
-        preamble +
-        "\n".join(f"- {flag}" for flag in encrypted_flags) +
-        postamble
-    )
+        # Write to cipher.txt
+        preamble = (
+            "Agency decrypted several possible code fragments from the recovered file.\n\n"
+            "Here are the extracted flag-like values:\n"
+        )
+        postamble = (
+            "\nOnly one of these follows the official agency flag format.\n\n"
+            "Cross-check carefully before submitting."
+        )
 
-    print(f"📝 cipher.txt created with {len(all_flags)} Vigenère-encrypted flags.")
+        cipher_file.write_text(
+            preamble +
+            "\n".join(f"- {flag}" for flag in encrypted_flags) +
+            postamble
+        )
+
+        print(f"📝 cipher.txt created with {len(all_flags)} Vigenère-encrypted flags.")
+
+    except PermissionError:
+        print(f"❌ Permission denied: Cannot write to {cipher_file}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Unexpected error during embedding: {e}")
+        sys.exit(1)
 
 def generate_flag(challenge_folder: Path) -> str:
     """

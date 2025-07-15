@@ -3,23 +3,42 @@
 from pathlib import Path
 import random
 import subprocess
+import sys
 from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
 def check_qrencode_installed():
     """Verify qrencode is installed, or exit with error."""
     result = subprocess.run(["which", "qrencode"], capture_output=True)
     if result.returncode != 0:
-        print("❌ qrencode is not installed. Please run: sudo apt install qrencode")
-        exit(1)
+        print("❌ ERROR: qrencode is not installed.")
+        print("👉 To fix, run: sudo apt install qrencode")
+        sys.exit(1)
+    else:
+        print("✅ qrencode is installed.")
 
 def create_qr_code(output_file: Path, text: str):
     """Use qrencode to generate a QR code PNG."""
-    subprocess.run(["qrencode", "-o", str(output_file), text], check=True)
+    try:
+        subprocess.run(["qrencode", "-o", str(output_file), text], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Failed to generate QR code: {e}")
+        sys.exit(1)
+
+def clean_qr_codes(folder: Path):
+    """Remove any old QR codes in the challenge folder."""
+    for qr_file in folder.glob("qr_*.png"):
+        try:
+            qr_file.unlink()
+            print(f"🗑️ Removed old file: {qr_file.name}")
+        except Exception as e:
+            print(f"⚠️ Could not delete {qr_file.name}: {e}")
 
 def embed_flags_as_qr(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
     Generate 5 QR codes in the challenge folder: 1 real flag and 4 fake flags.
     """
+    clean_qr_codes(challenge_folder)
+
     # Combine and shuffle flags
     all_flags = fake_flags + [real_flag]
     random.shuffle(all_flags)

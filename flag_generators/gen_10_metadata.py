@@ -3,6 +3,7 @@
 from pathlib import Path
 import random
 import subprocess
+import sys
 from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
 GENERATOR_DIR = Path(__file__).parent
@@ -14,10 +15,22 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
     source_image = GENERATOR_DIR / "capybara.jpg"
     dest_image = challenge_folder / "capybara.jpg"
 
-    # Copy clean capybara.jpg into challenge folder
-    dest_image.write_bytes(source_image.read_bytes())
+    # === Check if exiftool is installed ===
+    if not shutil.which("exiftool"):
+        print("❌ exiftool is not installed. Please install it first.")
+        sys.exit(1)
 
-    # Assign flags to metadata fields
+    # === Copy clean capybara.jpg into challenge folder ===
+    try:
+        dest_image.write_bytes(source_image.read_bytes())
+    except FileNotFoundError:
+        print(f"❌ Source image not found: {source_image}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Failed to copy image: {e}")
+        sys.exit(1)
+
+    # === Assign flags to metadata fields ===
     random.shuffle(fake_flags)
     metadata_tags = {
         "ImageDescription": fake_flags[0],
@@ -27,18 +40,31 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
         "UserComment": real_flag  # Embed the real flag here
     }
 
-    print(f"📝 Embedding flags into metadata...")
-    for tag, value in metadata_tags.items():
-        subprocess.run(
-            ["exiftool", f"-{tag}={value}", str(dest_image)],
-            check=True,
-            stdout=subprocess.DEVNULL
-        )
+    print("📝 Embedding flags into EXIF metadata...")
+    try:
+        for tag, value in metadata_tags.items():
+            result = subprocess.run(
+                ["exiftool", f"-{tag}={value}", str(dest_image)],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+    except subprocess.CalledProcessError as e:
+        print(f"❌ exiftool failed: {e.stderr.strip()}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Unexpected error while embedding metadata: {e}")
+        sys.exit(1)
 
-    # Remove backup file exiftool creates (capybara.jpg_original)
+    # === Remove exiftool backup file (capybara.jpg_original) ===
     backup_file = dest_image.with_suffix(dest_image.suffix + "_original")
     if backup_file.exists():
-        backup_file.unlink()
+        try:
+            backup_file.unlink()
+            print("🗑️ Cleaned up exiftool backup file.")
+        except Exception as e:
+            print(f"⚠️ Could not remove backup file: {e}")
 
     print(f"✅ Embedded real flag in UserComment: {real_flag}")
 
@@ -49,11 +75,11 @@ def generate_flag(challenge_folder: Path) -> str:
     """
     # Manually add "META" to the prefix
     real_flag = generate_real_flag().replace("CCRI-", "CCRI-META-")
+
+    # Generate unique fake flags
     fake_flags = set()
     while len(fake_flags) < 4:
-        fake = generate_fake_flag()
-        # Adjust fake flag prefix to match real
-        fake = fake.replace("CCRI-", "FAKE-")
+        fake = generate_fake_flag().replace("CCRI-", "FAKE-")
         fake_flags.add(fake)
 
     embed_flags(challenge_folder, real_flag, list(fake_flags))

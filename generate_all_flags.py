@@ -3,6 +3,8 @@
 import json
 import argparse
 from pathlib import Path
+import shutil
+import sys
 
 # === CONFIGURATION ===
 BASE_DIR = Path(__file__).parent.resolve()
@@ -55,46 +57,70 @@ GENERATOR_MAP = {
 # === Master Flag Generation ===
 def main(dry_run=False):
     # Load challenges.json
-    with open(CHALLENGES_JSON, "r") as f:
-        challenges = json.load(f)
+    try:
+        with open(CHALLENGES_JSON, "r") as f:
+            challenges = json.load(f)
+    except Exception as e:
+        print(f"❌ ERROR: Could not read {CHALLENGES_JSON}: {e}")
+        sys.exit(1)
 
     if dry_run:
         print("📝 Dry-run mode enabled: outputs will be written to 'dryrun_output/'\n")
         DRYRUN_DIR.mkdir(parents=True, exist_ok=True)
+    else:
+        # Backup challenges.json before modifying
+        backup_file = CHALLENGES_JSON.with_suffix(".json.bak")
+        shutil.copy2(CHALLENGES_JSON, backup_file)
+        print(f"📦 Backup created: {backup_file}")
+
+    success_count = 0
+    fail_count = 0
 
     for challenge_id, challenge in challenges.items():
-        # Use dummy folder if dry-run, otherwise use real challenge folder
-        live_folder = (CHALLENGES_DIR / Path(challenge["folder"]).name).resolve()
-        dry_folder = (DRYRUN_DIR / Path(challenge["folder"]).name).resolve()
-        target_folder = dry_folder if dry_run else live_folder
-        target_folder.mkdir(parents=True, exist_ok=True)
+        try:
+            folder_name = Path(challenge["folder"]).name
+            if not folder_name or ".." in folder_name:
+                raise ValueError(f"Invalid folder name: {folder_name}")
 
-        print(f"🚀 Generating flag for {challenge_id}...")
+            # Use dummy folder if dry-run, otherwise use real challenge folder
+            live_folder = (CHALLENGES_DIR / folder_name).resolve()
+            dry_folder = (DRYRUN_DIR / folder_name).resolve()
+            target_folder = dry_folder if dry_run else live_folder
+            target_folder.mkdir(parents=True, exist_ok=True)
 
-        if challenge_id in GENERATOR_MAP:
-            # For challenge 17, pass SERVER_PY explicitly
-            if challenge_id == "17_Nmap_Scanning":
-                real_flag = GENERATOR_MAP[challenge_id](target_folder, SERVER_PY)
+            print(f"🚀 Generating flag for {challenge_id}...")
+
+            if challenge_id in GENERATOR_MAP:
+                # For challenge 17, pass SERVER_PY explicitly
+                if challenge_id == "17_Nmap_Scanning":
+                    real_flag = GENERATOR_MAP[challenge_id](target_folder, SERVER_PY)
+                else:
+                    real_flag = GENERATOR_MAP[challenge_id](target_folder)
+
+                if dry_run:
+                    print(f"✅ [Dry-Run] {challenge_id}: Real flag = {real_flag}")
+                    print(f"📂 Would write files to: {target_folder}\n")
+                else:
+                    challenge["flag"] = real_flag
+                    print(f"✅ {challenge_id}: Real flag = {real_flag}\n")
+
+                success_count += 1
             else:
-                real_flag = GENERATOR_MAP[challenge_id](target_folder)
-
-            if dry_run:
-                print(f"✅ [Dry-Run] {challenge_id}: Real flag = {real_flag}")
-                print(f"📂 Would write files to: {target_folder}")
-                print(f"📄 Would update challenges.json with: {real_flag}\n")
-            else:
-                challenge["flag"] = real_flag
-                print(f"✅ {challenge_id}: Real flag = {real_flag}\n")
-        else:
-            print(f"⚠️ No generator found for {challenge_id}. Skipping.\n")
+                print(f"⚠️ No generator found for {challenge_id}. Skipping.\n")
+        except Exception as e:
+            print(f"❌ ERROR in {challenge_id}: {e}\n")
+            fail_count += 1
 
     if dry_run:
-        print("✅ Dry-run complete. No changes made to live challenges or challenges.json.")
+        print(f"✅ Dry-run complete. No changes made to live challenges or challenges.json.")
     else:
         # Save updated challenges.json
         with open(CHALLENGES_JSON, "w") as f:
             json.dump(challenges, f, indent=4)
         print("🎉 All flags generated and challenges.json updated.")
+
+    print(f"\n📊 Summary: {success_count} successful | {fail_count} failed")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate flags for the admin version.")

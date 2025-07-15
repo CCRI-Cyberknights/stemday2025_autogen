@@ -4,6 +4,7 @@ from pathlib import Path
 import random
 from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
+# Subdomain details
 SUBDOMAINS = [
     ("alpha.liber8.local", "Alpha Service Portal", "Alpha Service", "Welcome to the Alpha team portal. All systems operational."),
     ("beta.liber8.local", "Beta Operations Dashboard", "Beta Operations", "Restricted Access – Authorized Personnel Only"),
@@ -38,6 +39,7 @@ ALT_PRE_LINES = [
     "[NOTICE] Authentication handshake completed."
 ]
 
+
 def generate_logs(flag: str) -> str:
     """
     Generate 3-5 log lines, embedding the flag in one randomly.
@@ -47,16 +49,16 @@ def generate_logs(flag: str) -> str:
     lines[insert_pos] = lines[insert_pos].format(flag)
     return "\n".join(lines)
 
+
 def embed_flag(flag: str) -> str:
     """
-    Randomly embed the flag in either a <p> or <pre> block (both visible in browser).
+    Randomly embed the flag in either a <p> or <pre> block.
     """
     if random.random() < 0.5:
-        # Place in a <p> block
         return f"<p><strong>Note:</strong> {flag}</p>"
     else:
-        # Place in a <pre> block
         return f"<pre>\n{generate_logs(flag)}\n</pre>"
+
 
 def create_html(subdomain: str, title: str, header_title: str, header_desc: str, footer: str, flag: str) -> str:
     """
@@ -95,22 +97,43 @@ def create_html(subdomain: str, title: str, header_title: str, header_desc: str,
 </body>
 </html>"""
 
+
+def clean_old_subdomain_html(challenge_folder: Path):
+    """
+    Remove any existing subdomain HTML files to avoid stale data.
+    """
+    for file in challenge_folder.glob("*.liber8.local.html"):
+        try:
+            file.unlink()
+            print(f"🗑️ Removed old file: {file.name}")
+        except Exception as e:
+            print(f"⚠️ Could not delete {file.name}: {e}")
+
+
 def embed_subdomain_html(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
     Generate HTML files for each subdomain.
     """
+    challenge_folder.mkdir(parents=True, exist_ok=True)
+    clean_old_subdomain_html(challenge_folder)
+
     flags = fake_flags + [real_flag]
     random.shuffle(flags)
 
     for (subdomain, title, header_title, header_desc), footer, flag in zip(SUBDOMAINS, FOOTERS, flags):
         file_path = challenge_folder / f"{subdomain}.html"
         html_content = create_html(subdomain, title, header_title, header_desc, footer, flag)
-        file_path.write_text(html_content)
+        try:
+            file_path.write_text(html_content, encoding="utf-8")
+        except Exception as e:
+            print(f"❌ Failed to write {file_path}: {e}")
+            continue
 
         if flag == real_flag:
             print(f"✅ {file_path.name} (REAL flag)")
         else:
             print(f"➖ {file_path.name} (decoy)")
+
 
 def generate_flag(challenge_folder: Path) -> str:
     """

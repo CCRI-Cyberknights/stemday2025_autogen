@@ -2,8 +2,9 @@
 
 import base64
 import random
+import sys
 from pathlib import Path
-from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
+from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag
 
 GENERATOR_DIR = Path(__file__).parent
 
@@ -13,23 +14,34 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
     memory_dump_file = challenge_folder / "memory_dump.txt"
 
-    # Combine and shuffle flags
-    all_flags = fake_flags + [real_flag]
-    random.shuffle(all_flags)
+    try:
+        # Sanity check: ensure challenge folder exists
+        if not challenge_folder.exists():
+            raise FileNotFoundError(f"❌ Challenge folder not found: {challenge_folder}")
 
-    # Base64 encode each flag
-    encoded_flags = [
-        base64.b64encode(flag.encode("utf-8")).decode("utf-8")
-        for flag in all_flags
-    ]
+        # Combine and shuffle flags
+        all_flags = fake_flags + [real_flag]
+        random.shuffle(all_flags)
 
-    # Write to memory_dump.txt
-    memory_dump_file.write_text(
-        "Multiple values recovered from the memory dump. Only one is a valid CCRI flag.\n\n" +
-        "\n".join(f"- {flag}" for flag in encoded_flags)
-    )
+        # Base64 encode each flag
+        encoded_flags = [
+            base64.b64encode(flag.encode("utf-8")).decode("utf-8")
+            for flag in all_flags
+        ]
 
-    print(f"📄 memory_dump.txt created with {len(all_flags)} base64-encoded flags.")
+        # Write to memory_dump.txt
+        memory_dump_file.write_text(
+            "Multiple values recovered from the memory dump. Only one is a valid CCRI flag.\n\n" +
+            "\n".join(f"- {flag}" for flag in encoded_flags)
+        )
+        print(f"📄 memory_dump.txt created with {len(all_flags)} base64-encoded flags.")
+
+    except PermissionError:
+        print(f"❌ Permission denied: Cannot write to {memory_dump_file}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+        sys.exit(1)
 
 def generate_flag(challenge_folder: Path) -> str:
     """
@@ -39,7 +51,7 @@ def generate_flag(challenge_folder: Path) -> str:
     real_flag = generate_real_flag()
     fake_flags = {generate_fake_flag() for _ in range(4)}
 
-    # Make sure real flag isn’t duplicated accidentally
+    # Ensure real flag isn’t duplicated accidentally
     while real_flag in fake_flags:
         real_flag = generate_real_flag()
 

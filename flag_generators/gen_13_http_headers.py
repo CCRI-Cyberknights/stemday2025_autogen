@@ -2,9 +2,10 @@
 
 from pathlib import Path
 import random
+import sys
 from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag  # ✅ fixed import
 
-# Predefined server and X-Powered-By variants
+# Predefined header and body variants
 SERVERS = [
     "Liber8-Server/2.3.1",
     "Liber8-Server/3.0.0-beta",
@@ -34,44 +35,34 @@ CACHE_CONTROLS = [
 ]
 
 HTML_BODIES = [
-    """
-<html>
+    """<html>
   <head><title>Liber8 Portal</title></head>
   <body>
     <h1>Welcome to Liber8</h1>
     <p>System maintenance is underway. Some services may be unavailable.</p>
   </body>
-</html>
-""",
-    """
-<html>
+</html>""",
+    """<html>
   <head><title>Internal Dashboard</title></head>
   <body>
     <h1>Liber8 Ops Dashboard</h1>
     <p>Authentication successful. Redirecting...</p>
   </body>
-</html>
-""",
-    """
-<html>
+</html>""",
+    """<html>
   <head><title>Data Service</title></head>
   <body>
     <h1>Data Service Ready</h1>
     <p>Connect your client application to begin.</p>
   </body>
-</html>
-""",
-    """
-{
+</html>""",
+    """{
   "status": "ok",
   "message": "API version 1.2.4 is running.",
   "notes": "No maintenance scheduled."
-}
-""",
-    """
-Welcome to the Liber8 data endpoint.
-This endpoint returns plain text responses.
-"""
+}""",
+    """Welcome to the Liber8 data endpoint.
+This endpoint returns plain text responses."""
 ]
 
 HTML_COMMENTS = [
@@ -104,20 +95,33 @@ def generate_http_response(flag: str) -> str:
         session_id = ''.join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=12))
         headers.append(f"Set-Cookie: sessionid={session_id}; HttpOnly; Secure")
 
-    # Shuffle optional headers a little
-    random.shuffle(headers[5:])  # Shuffle everything after "Cache-Control"
+    random.shuffle(headers[5:])  # Shuffle optional headers
 
-    # Choose body and comment
     body = random.choice(HTML_BODIES)
     comment = random.choice(HTML_COMMENTS)
 
     return "\n".join(headers) + "\n\n" + body + "\n\n" + comment
 
 
+def clean_old_responses(challenge_folder: Path):
+    """
+    Remove old response_*.txt files from challenge folder.
+    """
+    for old_file in challenge_folder.glob("response_*.txt"):
+        try:
+            old_file.unlink()
+            print(f"🗑️ Removed old file: {old_file.name}")
+        except Exception as e:
+            print(f"⚠️ Could not delete {old_file.name}: {e}")
+
+
 def embed_http_responses(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
     Generate 5 response files with headers, one containing the real flag.
     """
+    challenge_folder.mkdir(parents=True, exist_ok=True)
+    clean_old_responses(challenge_folder)
+
     all_flags = fake_flags + [real_flag]
     random.shuffle(all_flags)
 
