@@ -59,7 +59,15 @@ def compile_server_binary():
     print("⚙️ Compiling server.py with PyInstaller...")
 
     result = subprocess.run(
-        ["pyinstaller", "--onefile", "--distpath", STUDENT_DIR, SERVER_SOURCE],
+        [
+            "pyinstaller",
+            "--onefile",
+            f"--add-data={STUDENT_DIR}/challenges.json:.",
+            f"--add-data={STUDENT_DIR}/templates:templates",
+            f"--add-data={STUDENT_DIR}/static:static",
+            "--distpath", STUDENT_DIR,
+            SERVER_SOURCE
+        ],
         cwd=ADMIN_DIR,  # Force PyInstaller to run from ADMIN_DIR
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

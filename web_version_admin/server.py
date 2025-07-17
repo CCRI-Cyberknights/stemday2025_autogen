@@ -1,8 +1,6 @@
 try:
-    # Flask 2.x: Markup is part of flask
     from flask import Flask, render_template, request, jsonify, Markup, send_from_directory
 except ImportError:
-    # Flask 3.x: Markup moved to markupsafe
     from flask import Flask, render_template, request, jsonify, send_from_directory
     from markupsafe import Markup
 
@@ -16,21 +14,34 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from ChallengeList import ChallengeList
 import markdown
 
+# === Handle PyInstaller path resolution ===
+import sys
+if getattr(sys, 'frozen', False):
+    BASE_DIR = sys._MEIPASS
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # === App Initialization ===
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, "templates"),
+    static_folder=os.path.join(BASE_DIR, "static")
+)
+
 DEBUG_MODE = os.environ.get("CCRI_DEBUG", "0") == "1"
 logging.basicConfig(level=logging.DEBUG if DEBUG_MODE else logging.INFO)
 
 # === Load Challenges ===
+challenges_path = os.path.join(BASE_DIR, "challenges.json")
 try:
-    print("Loading challenges from challenges.json...")
-    challenges = ChallengeList()
+    print(f"Loading challenges from {challenges_path}...")
+    challenges = ChallengeList(challenges_file=challenges_path)
     print(f"Loaded {challenges.numOfChallenges} challenges successfully.")
 except FileNotFoundError:
-    print("❌ ERROR: Could not find 'challenges.json' in the current directory!")
+    print(f"❌ ERROR: Could not find '{challenges_path}'!")
     exit(1)
 except json.JSONDecodeError:
-    print("❌ ERROR: 'challenges.json' contains invalid JSON!")
+    print(f"❌ ERROR: '{challenges_path}' contains invalid JSON!")
     exit(1)
 
 # === Helper: XOR Decode ===
