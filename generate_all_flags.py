@@ -130,13 +130,18 @@ class FlagGenerationManager:
 
 # === Entry Point ===
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate flags for the admin version.")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Run without modifying challenges.json or live challenge folders"
-    )
-    args = parser.parse_args()
+    # Prompt for dry-run mode
+    while True:
+        choice = input("💡 Run in dry-run mode? (y/n): ").strip().lower()
+        if choice in ["y", "yes"]:
+            dry_run = True
+            break
+        elif choice in ["n", "no"]:
+            dry_run = False
+            break
+        else:
+            print("❓ Please answer 'y' or 'n'.")
 
-    manager = FlagGenerationManager(dry_run=args.dry_run)
+    manager = FlagGenerationManager(dry_run=dry_run)
     manager.generate_flags()
+
