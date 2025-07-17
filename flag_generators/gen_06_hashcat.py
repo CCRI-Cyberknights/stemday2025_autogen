@@ -8,6 +8,7 @@ import base64
 import sys
 from flag_generators.flag_helpers import generate_real_flag, generate_fake_flag
 
+
 # === Helper: Find Project Root ===
 def find_project_root() -> Path:
     """
@@ -20,17 +21,23 @@ def find_project_root() -> Path:
     print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
     sys.exit(1)
 
+
 # === Resolve Project Root ===
 PROJECT_ROOT = find_project_root()
 
-# Path to shared wordlist template (relative to project root)
+# Path to shared wordlist template
 WORDLIST_TEMPLATE = PROJECT_ROOT / "flag_generators" / "wordlist.txt"
 
+
 def md5_hash(password: str) -> str:
+    """Return MD5 hash of a password."""
     return hashlib.md5(password.encode("utf-8")).hexdigest()
 
+
 def base64_encode(text: str) -> str:
+    """Base64 encode the given text."""
     return base64.b64encode(text.encode("utf-8")).decode("utf-8")
+
 
 def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
     """
@@ -42,7 +49,9 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
 
         # Check if wordlist template exists
         if not WORDLIST_TEMPLATE.exists():
-            raise FileNotFoundError(f"❌ Wordlist template missing: {WORDLIST_TEMPLATE.relative_to(PROJECT_ROOT)}")
+            raise FileNotFoundError(
+                f"❌ Wordlist template missing: {WORDLIST_TEMPLATE.relative_to(PROJECT_ROOT)}"
+            )
 
         # Combine and split flags into parts
         all_flags = fake_flags + [real_flag]
@@ -57,8 +66,7 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
         for idx, parts in enumerate([part1, part2, part3], start=1):
             encoded_text = "\n".join(parts)
             encoded_b64 = base64_encode(encoded_text)
-            filename = f"encoded_segments{idx}.txt"
-            file_path = challenge_folder / filename
+            file_path = challenge_folder / f"encoded_segments{idx}.txt"
             file_path.write_text(encoded_b64)
             encoded_files.append(file_path)
 
@@ -85,7 +93,9 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
                 capture_output=True, text=True
             )
             if result.returncode != 0:
-                raise RuntimeError(f"❌ Zip failed for {file.name}: {result.stderr.strip()}")
+                raise RuntimeError(
+                    f"❌ Zip failed for {file.name}: {result.stderr.strip()}"
+                )
 
             file.unlink()  # Remove plaintext encoded file
 
@@ -93,7 +103,12 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
         wordlist_file = challenge_folder / "wordlist.txt"
         wordlist_file.write_text("\n".join(all_passwords))
 
-        print(f"🗝️ {hashes_txt.relative_to(PROJECT_ROOT)}, {wordlist_file.relative_to(PROJECT_ROOT)}, and 🔒 {segments_dir.relative_to(PROJECT_ROOT)} created with random passwords: {', '.join(chosen_passwords)}")
+        print(
+            f"🗝️ {hashes_txt.relative_to(PROJECT_ROOT)}, "
+            f"{wordlist_file.relative_to(PROJECT_ROOT)}, "
+            f"and 🔒 {segments_dir.relative_to(PROJECT_ROOT)} created "
+            f"with random passwords: {', '.join(chosen_passwords)}"
+        )
 
     except (FileNotFoundError, PermissionError) as e:
         print(e, file=sys.stderr)
@@ -102,9 +117,11 @@ def embed_flags(challenge_folder: Path, real_flag: str, fake_flags: list):
         print(f"❌ Unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 
+
 def generate_flag(challenge_folder: Path) -> str:
     """
-    Generate real/fake flags and embed them into hashcat challenge.
+    Generate real/fake flags and embed them into hashcat challenge assets.
+    Returns the real flag in plaintext.
     """
     real_flag = generate_real_flag()
     fake_flags = {generate_fake_flag() for _ in range(4)}
@@ -114,4 +131,5 @@ def generate_flag(challenge_folder: Path) -> str:
         real_flag = generate_real_flag()
 
     embed_flags(challenge_folder, real_flag, list(fake_flags))
+    print(f"✅ Admin flag: {real_flag}")
     return real_flag

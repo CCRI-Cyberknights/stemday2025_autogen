@@ -1,39 +1,30 @@
 #!/bin/bash
-# build_web_version.sh - Build the student web hub from admin version
 
-set -e
-
+# === Bash Wrapper for Web Version Builder ===
 echo "🚀 Starting Web Version Build Process..."
 
-# === Helper: Find Project Root ===
-find_project_root() {
-    local dir="$PWD"
-    while [[ "$dir" != "/" ]]; do
-        if [[ -f "$dir/.ccri_ctf_root" ]]; then
-            echo "$dir"
-            return 0
-        fi
-        dir="$(dirname "$dir")"
-    done
-    echo "❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF repo?" >&2
+# === Check for PyInstaller ===
+if ! command -v pyinstaller >/dev/null 2>&1; then
+    echo "❌ PyInstaller is not installed. Install it with: sudo apt install pyinstaller"
     exit 1
-}
+fi
 
-PROJECT_ROOT="$(find_project_root)"
-WEB_ADMIN_DIR="$PROJECT_ROOT/web_version_admin"
-WEB_STUDENT_DIR="$PROJECT_ROOT/web_version"
+# === Display PyInstaller Version ===
+PYI_VERSION=$(pyinstaller --version 2>/dev/null || echo "unknown")
+echo "📦 Detected PyInstaller version: $PYI_VERSION"
 
-# === Run Embedded Python3 Script ===
-/usr/bin/env python3 <<EOF
+# === Use Python3 to execute the embedded script ===
+/usr/bin/env python3 <<'EOF'
 import json
 import base64
 import os
 import shutil
-import py_compile
+import subprocess
 import stat
+import sys
 
 # === Dynamic Base Directory Detection ===
-BASE_DIR = os.path.abspath("${PROJECT_ROOT}")
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 ADMIN_DIR = os.path.join(BASE_DIR, "web_version_admin")
 STUDENT_DIR = os.path.join(BASE_DIR, "web_version")
 
@@ -41,7 +32,6 @@ ADMIN_JSON = os.path.join(ADMIN_DIR, "challenges.json")
 TEMPLATES_FOLDER = os.path.join(ADMIN_DIR, "templates")
 STATIC_FOLDER = os.path.join(ADMIN_DIR, "static")
 SERVER_SOURCE = os.path.join(ADMIN_DIR, "server.py")
-START_SCRIPT_SOURCE = os.path.join(ADMIN_DIR, "start_web_hub.sh")
 ENCODE_KEY = "CTF4EVER"
 
 def xor_encode(plaintext, key):
@@ -63,6 +53,35 @@ def make_scripts_executable(challenges_data):
             print(f"✅ Made executable: {script_path}")
         else:
             print(f"⚠️ Script not found: {script_path}")
+
+def compile_server_binary():
+    """Use PyInstaller to create a single-file binary of server.py"""
+    print("⚙️ Compiling server.py with PyInstaller...")
+
+    result = subprocess.run(
+        ["pyinstaller", "--onefile", "--distpath", STUDENT_DIR, SERVER_SOURCE],
+        cwd=ADMIN_DIR,  # Force PyInstaller to run from ADMIN_DIR
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
+    if result.returncode != 0:
+        print("❌ PyInstaller failed:")
+        print(result.stderr)
+        exit(1)
+
+    print(f"✅ Compiled binary placed in {STUDENT_DIR}")
+
+    # Clean up build artifacts
+    for artifact in ["build", "server.spec", "__pycache__"]:
+        artifact_path = os.path.join(ADMIN_DIR, artifact)
+        if os.path.isdir(artifact_path):
+            shutil.rmtree(artifact_path, ignore_errors=True)
+            print(f"🧹 Cleaned folder: {artifact_path}")
+        elif os.path.isfile(artifact_path):
+            os.remove(artifact_path)
+            print(f"🧹 Removed file: {artifact_path}")
 
 def prepare_web_version():
     # Clear the student web_version folder
@@ -108,20 +127,10 @@ def prepare_web_version():
         dirs_exist_ok=True
     )
 
-    # Copy start_web_hub.sh and set executable
-    print("📂 Copying start_web_hub.sh...")
-    start_script_dest = os.path.join(STUDENT_DIR, "start_web_hub.sh")
-    shutil.copy2(START_SCRIPT_SOURCE, start_script_dest)
-    os.chmod(start_script_dest, os.stat(start_script_dest).st_mode | stat.S_IXUSR)
-    print(f"✅ Copied and made executable: {start_script_dest}")
+    # Compile server.py to standalone binary
+    compile_server_binary()
 
-    # Compile server.py to server.pyc
-    print("⚙️ Compiling server.py for student version...")
-    compiled_path = os.path.join(STUDENT_DIR, "server.pyc")
-    py_compile.compile(SERVER_SOURCE, cfile=compiled_path)
-    print(f"✅ Compiled server saved as {compiled_path}")
-
-    print("\\n🎉 Student web_version folder rebuilt successfully!\\n")
+    print("\n🎉 Student web_version folder rebuilt successfully!\n")
 
 if __name__ == "__main__":
     print(f"📂 Detected BASE_DIR: {BASE_DIR}")

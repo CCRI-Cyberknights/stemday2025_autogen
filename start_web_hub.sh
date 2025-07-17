@@ -1,11 +1,12 @@
 #!/bin/bash
-# start_web_hub.sh - Unified launcher for admin and student environments
+# start_web_hub.sh - Unified launcher for CCRI CTF Hub
+# For use in CCRI_STEM Desktop CCRI_CTF folder
 
 set -e
 
 echo "🚀 Starting the CCRI CTF Hub..."
 
-# === Helper: Find Project Root ===
+# === Find Project Root ===
 find_project_root() {
     local dir="$PWD"
     while [[ "$dir" != "/" ]]; do
@@ -21,14 +22,12 @@ find_project_root() {
 
 PROJECT_ROOT="$(find_project_root)"
 
-# === Detect mode: Admin vs Student ===
+# === Detect Mode: Admin vs Student ===
 if [[ -d "$PROJECT_ROOT/web_version_admin" ]]; then
-    echo "🛠️  Admin/Dev environment detected (web_version_admin found)."
-    
-    # Prompt user for mode
+    echo "🛠️ Admin/Dev environment detected (web_version_admin found)."
     echo
     echo "Which mode would you like to run?"
-    echo "1) 🛠️  Admin Mode (full tools, editable flags)"
+    echo "1) 🛠️ Admin Mode (full tools, editable flags)"
     echo "2) 🎓 Student Mode (restricted, obfuscated flags)"
     echo
     read -p "Enter choice [1-2]: " mode_choice
@@ -39,7 +38,7 @@ if [[ -d "$PROJECT_ROOT/web_version_admin" ]]; then
             ;;
         2)
             SERVER_DIR="$PROJECT_ROOT/web_version"
-            SERVER_FILE="server.pyc"
+            SERVER_FILE="server"
             ;;
         *)
             echo "❌ Invalid choice. Exiting."
@@ -49,27 +48,30 @@ if [[ -d "$PROJECT_ROOT/web_version_admin" ]]; then
 else
     echo "🎓 Student environment detected (web_version_admin not found)."
     SERVER_DIR="$PROJECT_ROOT/web_version"
-    SERVER_FILE="server.pyc"
+    SERVER_FILE="server"
 fi
 
-# === Validate server path ===
+# === Launch Flask Server ===
 SERVER_PATH="$SERVER_DIR/$SERVER_FILE"
 if [[ ! -f "$SERVER_PATH" ]]; then
     echo "❌ ERROR: Cannot find $SERVER_FILE in $SERVER_DIR"
     exit 1
 fi
 
-# === Check if Flask server already running on port 5000 ===
 echo "🔍 Checking if web server is already running on port 5000..."
 if command -v lsof >/dev/null 2>&1 && lsof -i:5000 >/dev/null 2>&1; then
     echo "🌐 Flask web server is already running. Skipping launch."
 else
     echo "🌐 Launching Flask web server from: $SERVER_PATH"
     LOG_FILE="$PROJECT_ROOT/web_server.log"
-    nohup python3 "$SERVER_PATH" > "$LOG_FILE" 2>&1 &
+    if [[ "$SERVER_FILE" == "server" ]]; then
+        nohup "$SERVER_PATH" > "$LOG_FILE" 2>&1 &
+    else
+        nohup python3 "$SERVER_PATH" > "$LOG_FILE" 2>&1 &
+    fi
     sleep 2
 
-    # Check if it successfully launched
+    # Verify server startup
     if ! curl -s http://localhost:5000 >/dev/null; then
         echo "❌ ERROR: Flask server failed to start. Check logs at: $LOG_FILE"
         exit 1
@@ -77,19 +79,14 @@ else
     echo "✅ Flask server started successfully."
 fi
 
-# === Launch browser ===
+# === Open Browser ===
 echo "🌐 Opening browser to http://localhost:5000 ..."
-export DISPLAY=:0  # Ensure graphical display is set
-
+export DISPLAY=:0
 if command -v xdg-open >/dev/null 2>&1; then
     setsid xdg-open "http://localhost:5000" >/dev/null 2>&1 || \
-    echo "⚠️ WARNING: Failed to launch browser with xdg-open. Open manually: http://localhost:5000"
-elif command -v firefox >/dev/null 2>&1; then
-    setsid firefox "http://localhost:5000" >/dev/null 2>&1 || \
-    echo "⚠️ WARNING: Failed to launch Firefox. Open manually: http://localhost:5000"
+    echo "⚠️ Could not launch browser automatically."
 else
-    echo "⚠️ No browser launcher found. Please open http://localhost:5000 manually."
+    echo "⚠️ No browser launcher found. Please open manually: http://localhost:5000"
 fi
 
-echo
 echo "✅ CCRI CTF Hub is ready!"
