@@ -1,6 +1,8 @@
 try:
+    # Flask 2.x: Markup is part of flask
     from flask import Flask, render_template, request, jsonify, Markup, send_from_directory
 except ImportError:
+    # Flask 3.x: Markup moved to markupsafe
     from flask import Flask, render_template, request, jsonify, send_from_directory
     from markupsafe import Markup
 
@@ -13,11 +15,11 @@ import logging
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from ChallengeList import ChallengeList
 import markdown
+import sys
 
 # === Handle PyInstaller path resolution ===
-import sys
 if getattr(sys, 'frozen', False):
-    BASE_DIR = sys._MEIPASS
+    BASE_DIR = sys._MEIPASS  # PyInstaller temp extraction dir
 else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -65,6 +67,13 @@ def challenge_view(challenge_id):
 
     folder = selectedChallenge.getFolder()
     readme_html = ""
+    if not os.path.exists(folder):
+        # Gracefully handle missing challenge folder
+        return render_template(
+            "error.html",
+            message=f"Challenge folder not found: {folder}"
+        ), 404
+
     readme_path = os.path.join(folder, 'README.txt')
     if os.path.exists(readme_path):
         try:
@@ -90,7 +99,8 @@ def get_challenge_file(challenge_id, filename):
         return "Challenge not found", 404
 
     folder = selectedChallenge.getFolder()
-    if not os.path.isfile(os.path.join(folder, filename)):
+    filepath = os.path.join(folder, filename)
+    if not os.path.exists(filepath):
         return "File not found", 404
 
     return send_from_directory(folder, filename)
@@ -123,6 +133,9 @@ def open_folder(challenge_id):
         return jsonify({"status": "error", "message": "Challenge not found"}), 404
 
     folder = selectedChallenge.getFolder()
+    if not os.path.exists(folder):
+        return jsonify({"status": "error", "message": "Challenge folder not found."}), 404
+
     try:
         subprocess.Popen(['xdg-open', folder], shell=False)
         return jsonify({"status": "success"})
@@ -137,11 +150,10 @@ def run_script(challenge_id):
 
     script_path = os.path.join(selectedChallenge.getFolder(), selectedChallenge.getScript())
 
-    if not os.path.isfile(script_path):
+    if not os.path.exists(script_path):
         return jsonify({"status": "error", "message": f"Script '{selectedChallenge.getScript()}' not found."}), 404
 
     try:
-        # === Detect if running on Parrot OS and prefer parrot-terminal ===
         if os.path.exists("/etc/parrot"):  # Parrot-specific marker file
             print("🐦 Detected Parrot OS. Forcing parrot-terminal.")
             subprocess.Popen([
@@ -151,7 +163,6 @@ def run_script(challenge_id):
             ], shell=False)
             return jsonify({"status": "success"})
 
-        # === Fallback for non-Parrot distros ===
         fallback_terminals = ["gnome-terminal", "konsole", "xfce4-terminal", "lxterminal"]
         for term in fallback_terminals:
             if subprocess.call(["which", term], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0:
