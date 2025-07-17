@@ -13,28 +13,31 @@ import base64
 import threading
 import logging
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from ChallengeList import ChallengeList
 import markdown
 import sys
 
-# === Handle PyInstaller path resolution ===
-if getattr(sys, 'frozen', False):
-    BASE_DIR = sys._MEIPASS  # PyInstaller temp extraction dir
-else:
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# === Base Directory ===
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+# === Add BASE_DIR to sys.path for imports ===
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+# === Import backend logic ===
+from ChallengeList import ChallengeList
 
 # === App Initialization ===
 app = Flask(
     __name__,
-    template_folder=os.path.join(BASE_DIR, "templates"),
-    static_folder=os.path.join(BASE_DIR, "static")
+    template_folder=os.path.join(BASE_DIR, "web_version", "templates"),
+    static_folder=os.path.join(BASE_DIR, "web_version", "static")
 )
 
 DEBUG_MODE = os.environ.get("CCRI_DEBUG", "0") == "1"
 logging.basicConfig(level=logging.DEBUG if DEBUG_MODE else logging.INFO)
 
 # === Load Challenges ===
-challenges_path = os.path.join(BASE_DIR, "challenges.json")
+challenges_path = os.path.join(BASE_DIR, "web_version", "challenges.json")
 try:
     print(f"Loading challenges from {challenges_path}...")
     challenges = ChallengeList(challenges_file=challenges_path)
@@ -50,8 +53,7 @@ except json.JSONDecodeError:
 def xor_decode(encoded_base64, key):
     decoded_bytes = base64.b64decode(encoded_base64)
     return ''.join(
-        chr(b ^ ord(key[i % len(key)]))
-        for i, b in enumerate(decoded_bytes)
+        chr(b ^ ord(key[i % len(key)])) for i, b in enumerate(decoded_bytes)
     )
 
 # === Routes ===
@@ -66,14 +68,11 @@ def challenge_view(challenge_id):
         return "Challenge not found", 404
 
     folder = selectedChallenge.getFolder()
-    readme_html = ""
     if not os.path.exists(folder):
-        # Gracefully handle missing challenge folder
-        return render_template(
-            "error.html",
-            message=f"Challenge folder not found: {folder}"
-        ), 404
+        # ⚠️ If challenge folder missing, return simple 404
+        return f"⚠️ Challenge folder not found: {folder}", 404
 
+    readme_html = ""
     readme_path = os.path.join(folder, 'README.txt')
     if os.path.exists(readme_path):
         try:

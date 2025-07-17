@@ -1,5 +1,4 @@
 import os
-import sys
 
 class Challenge:
     """Represents a single CTF challenge."""
@@ -11,17 +10,11 @@ class Challenge:
         self.complete = False  # Default: not completed
         self.flag = flag  # Real flag (plaintext in admin version)
 
-        # Detect PyInstaller frozen mode
-        if getattr(sys, 'frozen', False):
-            base_dir = sys._MEIPASS  # PyInstaller extracts files here
-        else:
-            base_dir = os.path.dirname(
-                os.path.abspath(__file__).replace(
-                    "/web_version_admin/utils", "/challenges"
-                )
-            )
-
-        self.folder = os.path.normpath(os.path.join(base_dir, folder))
+        # === Resolve challenge folder path ===
+        # BASE_DIR is the parent directory where web_version and challenges folders live
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        challenges_dir = os.path.join(base_dir, "challenges")
+        self.folder = os.path.normpath(os.path.join(challenges_dir, folder))
         self.script = os.path.normpath(os.path.join(self.folder, script))
 
     def setComplete(self):
