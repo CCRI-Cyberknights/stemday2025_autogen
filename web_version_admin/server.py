@@ -32,21 +32,29 @@ server_dir = os.path.dirname(os.path.abspath(__file__))
 if os.path.basename(server_dir) == "web_version_admin":
     mode = "admin"
     challenges_path = os.path.join(server_dir, "challenges.json")
+    template_folder = os.path.join(server_dir, "templates")
+    static_folder = os.path.join(server_dir, "static")
 else:
     mode = "student"
     challenges_path = os.path.join(server_dir, "challenges.json")
+    template_folder = os.path.join(server_dir, "templates")
+    static_folder = os.path.join(server_dir, "static")
 
 print(f"📖 Using challenges file at: {challenges_path}")
+print(f"📖 Using template folder at: {template_folder}")
 
 # === App Initialization ===
 app = Flask(
     __name__,
-    template_folder=os.path.join(BASE_DIR, "web_version", "templates"),
-    static_folder=os.path.join(BASE_DIR, "web_version", "static")
+    template_folder=template_folder,
+    static_folder=static_folder
 )
 
 DEBUG_MODE = os.environ.get("CCRI_DEBUG", "0") == "1"
 logging.basicConfig(level=logging.DEBUG if DEBUG_MODE else logging.INFO)
+print(f"DEBUG: server_dir = {server_dir}")
+print(f"DEBUG: mode = {mode}")
+print(f"DEBUG: Rendering with mode={mode}")
 
 # === Load Challenges ===
 try:
@@ -70,7 +78,7 @@ def xor_decode(encoded_base64, key):
 # === Flask Routes ===
 @app.route('/')
 def index():
-    return render_template('index.html', challenges=challenges)
+    return render_template('index.html', challenges=challenges, mode=mode)
 
 @app.route('/challenge/<challenge_id>')
 def challenge_view(challenge_id):
@@ -143,15 +151,13 @@ def submit_flag(challenge_id):
         else:
             print(f"❌ MISMATCH (Admin): Submitted flag does not match correct flag.")
             return jsonify({"status": "incorrect"}), 400
+
     else:
         try:
-            decoded_flag = xor_decode(
-                base64.b64decode(correct_flag),
-                "CTF4EVER"
-            ).strip()
+            decoded_flag = xor_decode(correct_flag, "CTF4EVER").strip()
             print(f"🎯 Decoded correct flag (Student): '{decoded_flag}'")
         except Exception as e:
-            print(f"⚠️ Decode failed: {e}")
+            print(f"⚠️ Decode failed in student mode: {e}")
             return jsonify({"status": "error", "message": "Internal decoding error."}), 500
 
         if submitted_flag == decoded_flag:
@@ -266,7 +272,6 @@ SERVICE_NAMES = {
     8098: "maintenance"
 }
 
-# The generator dynamically updates these service names for real/fake flag ports
 SERVICE_NAMES.update({
     # Example: generator will overwrite these dynamically
 })
@@ -300,5 +305,5 @@ for port in range(8000, 8101):
     start_fake_service(port)
 
 if __name__ == '__main__':
-    print("🌐 Student hub running on http://127.0.0.1:5000")
+    print(f"🌐 {mode.capitalize()} hub running on http://127.0.0.1:5000")
     app.run(host='127.0.0.1', port=5000, debug=False, threaded=True)
