@@ -10,7 +10,8 @@ from flag_generators.flag_helpers import FlagUtils
 class NmapScanFlagGenerator:
     """
     Generator for the Nmap Scanning challenge.
-    Dynamically patches web_version_admin/server.py with new ports and flags.
+    Dynamically patches web_version_admin/server.py with new ports, flags,
+    and neutral service names for realism.
     """
     def __init__(self, project_root: Path = None, server_file: Path = None):
         self.project_root = project_root or self.find_project_root()
@@ -34,7 +35,8 @@ class NmapScanFlagGenerator:
 
     def patch_server_file(self, real_flag: str, fake_flags: dict, real_port: int):
         """
-        Update the FAKE_FLAGS block in server.py with the new ports and flags.
+        Update the FAKE_FLAGS and SERVICE_NAMES blocks in server.py
+        with new ports, flags, and neutral service names.
         """
         server_file = self.server_file.resolve()
 
@@ -43,33 +45,66 @@ class NmapScanFlagGenerator:
             sys.exit(1)
 
         try:
-            # Build replacement FAKE_FLAGS block
+            # === Neutral service names for real/fake flags
+            neutral_names = [
+                "sysmon-api", "configd", "update-agent",
+                "auth-service", "metricsd", "rpc-agent", "db-syncd"
+            ]
+            random.shuffle(neutral_names)
+            flag_service_names = {}
+            flag_ports = [real_port] + list(fake_flags.keys())
+            for i, port in enumerate(flag_ports):
+                flag_service_names[port] = neutral_names[i % len(neutral_names)]
+
+            # === Build replacement FAKE_FLAGS block
             new_fake_flags = [f"    {real_port}: \"{real_flag}\",       # ✅ REAL FLAG"]
             for port, flag in fake_flags.items():
                 new_fake_flags.append(f"    {port}: \"{flag}\",       # fake")
             new_fake_flags_block = "FAKE_FLAGS = {\n" + "\n".join(new_fake_flags) + "\n}"
 
-            # Read server.py content
+            # === Build SERVICE_NAMES update block
+            service_name_updates = [
+                f"    {port}: \"{name}\"" for port, name in flag_service_names.items()
+            ]
+            new_service_names_block = (
+                "SERVICE_NAMES.update({\n" +
+                ",\n".join(service_name_updates) +
+                "\n})"
+            )
+
+            # === Read server.py content
             print(f"📂 Reading {server_file}...")
             content = server_file.read_text(encoding="utf-8")
 
-            # Replace FAKE_FLAGS block
-            new_content, count = re.subn(
+            # === Replace FAKE_FLAGS block
+            new_content, count_flags = re.subn(
                 r"FAKE_FLAGS\s*=\s*\{[^}]*\}",
                 new_fake_flags_block,
                 content,
                 flags=re.DOTALL
             )
-
-            if count == 0:
+            if count_flags == 0:
                 raise RuntimeError("No FAKE_FLAGS block found to replace!")
 
-            # Backup original server.py
+            # === Replace or Insert SERVICE_NAMES.update block
+            new_content, count_names = re.subn(
+                r"SERVICE_NAMES\.update\(\s*\{[^}]*\}\s*\)",
+                new_service_names_block,
+                new_content,
+                flags=re.DOTALL
+            )
+            if count_names == 0:
+                # Insert update block after FAKE_FLAGS if not present
+                new_content = new_content.replace(
+                    "# Combine real flags and junk responses",
+                    "# Combine real flags and junk responses\n" + new_service_names_block
+                )
+
+            # === Backup and write updated server.py
             backup_file = server_file.with_suffix(".bak")
             server_file.replace(backup_file)
             print(f"🗄️ Backup created: {backup_file.name}")
 
-            # Write updated server.py
             server_file.write_text(new_content, encoding="utf-8")
             print(f"✅ Updated {server_file.name}")
 
@@ -79,7 +114,7 @@ class NmapScanFlagGenerator:
 
     def generate_flag(self, challenge_folder: Path) -> str:
         """
-        Generate a real flag, update server.py with fake/real flags, and return real flag.
+        Generate a real flag, update server.py with fake/real flags and neutral service names, and return real flag.
         """
         # Select random ports
         port_range = list(range(8000, 8100))
@@ -88,7 +123,7 @@ class NmapScanFlagGenerator:
         real_flag = FlagUtils.generate_real_flag()
         fake_flags = {port: FlagUtils.generate_fake_flag() for port in selected_ports[1:]}
 
-        # Patch server.py with new flags
+        # Patch server.py with new flags and service names
         self.patch_server_file(real_flag, fake_flags, real_port)
 
         # Return plaintext real flag

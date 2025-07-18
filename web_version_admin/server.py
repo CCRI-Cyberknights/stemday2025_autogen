@@ -67,7 +67,7 @@ def xor_decode(encoded_base64, key):
         chr(b ^ ord(key[i % len(key)])) for i, b in enumerate(decoded_bytes)
     )
 
-# === Routes ===
+# === Flask Routes ===
 @app.route('/')
 def index():
     return render_template('index.html', challenges=challenges)
@@ -127,7 +127,6 @@ def submit_flag(challenge_id):
     print(f"🌐 Running in {mode.upper()} mode")
     correct_flag = selectedChallenge.getFlag().strip()
 
-    # === Debug: Print mode and flags
     print("====== FLAG DEBUG ======")
     print(f"🗂 Mode: {mode.upper()}")
     print(f"📥 Submitted flag: '{submitted_flag}'")
@@ -193,7 +192,7 @@ def run_script(challenge_id):
         return jsonify({"status": "error", "message": f"Script '{selectedChallenge.getScript()}' not found."}), 404
 
     try:
-        if os.path.exists("/etc/parrot"):  # Parrot-specific marker file
+        if os.path.exists("/etc/parrot"):
             print("🐦 Detected Parrot OS. Forcing parrot-terminal.")
             subprocess.Popen([
                 "parrot-terminal",
@@ -217,7 +216,7 @@ def run_script(challenge_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# === Simulated Open Ports ===
+# === Simulated Open Ports (Realistic Nmap Network) ===
 FAKE_FLAGS = {
     8004: "NMAP-PORT-4312",
     8023: "SCAN-4312-PORT",
@@ -225,26 +224,69 @@ FAKE_FLAGS = {
     8072: "OPEN-SERVICE-9281",
     8095: "HTTP-7721-SERVER"
 }
-SERVICE_NAMES = {
-    8004: "configd",
-    8023: "metricsd",
-    8047: "sysmon-api",
-    8072: "update-agent",
-    8095: "metrics-gateway"
+
+JUNK_RESPONSES = {
+    8001: "Welcome to Dev HTTP Server v1.3\nPlease login to continue.",
+    8009: "🔒 Unauthorized: API key required.",
+    8015: "503 Service Unavailable\nTry again later.",
+    8020: "<html><body><h1>It works!</h1><p>Apache2 default page.</p></body></html>",
+    8028: "DEBUG: Connection established successfully.",
+    8033: "💡 Tip: Scan only the ports you really need.",
+    8039: "ERROR 400: Bad request syntax.",
+    8045: "System maintenance in progress. Expected downtime: 13 minutes.",
+    8051: "Welcome to Experimental IoT Server (beta build).",
+    8058: "Python HTTP Server: directory listing not allowed.",
+    8064: "💻 Dev API v0.1 — POST requests only.",
+    8077: "403 Forbidden: You don’t have permission to access this resource.",
+    8083: "Error 418: I’m a teapot.",
+    8089: "Hello World!\nTest endpoint active.",
+    8098: "Server under maintenance.\nPlease retry in 5 minutes."
 }
+
+SERVICE_NAMES = {
+    8001: "dev-http",
+    8004: "flag-api",
+    8009: "secure-api",
+    8015: "maintenance",
+    8020: "apache",
+    8023: "flag-api",
+    8028: "debug-service",
+    8033: "help-service",
+    8039: "http",
+    8045: "maintenance",
+    8047: "flag-api",
+    8051: "iot-server",
+    8058: "http",
+    8064: "dev-api",
+    8072: "flag-api",
+    8077: "secure-api",
+    8083: "http",
+    8089: "test-service",
+    8095: "flag-api",
+    8098: "maintenance"
+}
+
+# The generator dynamically updates these service names for real/fake flag ports
+SERVICE_NAMES.update({
+    # Example: generator will overwrite these dynamically
+})
+
+ALL_PORTS = {**JUNK_RESPONSES, **FAKE_FLAGS}
 
 class PortHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         response = ALL_PORTS.get(self.server.server_port, "Connection refused")
-        banner = f"👋 Welcome to {SERVICE_NAMES.get(self.server.server_port, 'http')} Service\n\n"
+        service_name = SERVICE_NAMES.get(self.server.server_port, "http")
+        banner = f"👋 Welcome to {service_name} Service\n\n"
         self.send_response(200)
         self.send_header("Content-type", "text/plain; charset=utf-8")
-        self.send_header("Server", SERVICE_NAMES.get(self.server.server_port, "http"))
+        self.send_header("Server", service_name)
+        self.send_header("X-Service-Name", service_name)
         self.end_headers()
         self.wfile.write((banner + response).encode("utf-8"))
 
     def log_message(self, format, *args):
-        return  # Silence logs
+        return
 
 def start_fake_service(port):
     try:
@@ -254,7 +296,7 @@ def start_fake_service(port):
     except OSError as e:
         print(f"❌ Could not bind port {port}: {e}")
 
-for port in FAKE_FLAGS:
+for port in range(8000, 8101):
     start_fake_service(port)
 
 if __name__ == '__main__':
