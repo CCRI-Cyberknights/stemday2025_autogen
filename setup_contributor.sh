@@ -40,21 +40,5 @@ else
     echo "   Name : $(git config user.name)"
     echo "   Email: $(git config user.email)"
 fi
-
-# --- Clone the repo (if not already present) ---
-if [ ! -d "stemday_2025" ]; then
-    echo
-    echo "📥 Cloning STEMDay_2025 repository..."
-    git clone https://github.com/CCRI-Cyberknights/stemday_2025.git
-    echo "✅ Repository cloned into $(pwd)/stemday_2025"
-else
-    echo
-    echo "📂 Repository already exists in: $(pwd)/stemday_2025"
-    echo "   Skipping clone."
-fi
-
 echo
-echo "🎉 Setup complete! Your contributor environment is ready to use."
-echo "➡️  To get started:"
-echo "    cd stemday_2025"
-echo
+echo "🎉 Setup complete! You are now ready to clone the repo!"
