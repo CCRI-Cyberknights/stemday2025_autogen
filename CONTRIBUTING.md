@@ -1,4 +1,4 @@
-# 🌟 `stemday2025` Contributor Guide (Admin-Only)
+# 🌟 `stemday_2025` Contributor Guide (Admin-Only)
 
 Welcome to the **CCRI CyberKnights STEM Day VM Project!** 🎉  
 This repository powers a custom **Parrot Linux Capture The Flag (CTF)** experience for high school students.  
@@ -51,14 +51,17 @@ If you’re a CCRI CyberKnights member and want to contribute:
 
 ## 🧑‍💻 Setting Up Your Environment (Admin VM)
 
-### ✅ Install Git & Prerequisites
+### 🌀 Quick Setup (One Liner)
 
-Run these commands in your VM:  
+Run this command in your VM to install all tools and clone the repo:  
 
 ```bash
-sudo apt update
-sudo apt install -y git python3 python3-pip python3-venv python3-markdown python3-scapy exiftool zbar-tools steghide hashcat unzip nmap tshark qrencode
-```
+bash <(curl -fsSL https://raw.githubusercontent.com/CCRI-Cyberknights/stemday2025/main/setup_contributor.sh)
+
+This will:
+✅ Install Git and all required tools
+✅ Configure Git credentials
+✅ Clone the repo to your current directory
 
 ### ⚙️ Configure Git (First Time Only)
 
@@ -77,8 +80,8 @@ This saves your credentials for future pushes.
 ### 📥 Clone the Repo
 
 ```bash
-git clone https://github.com/CCRI-Cyberknights/stemday2025.git
-cd stemday2025
+git clone https://github.com/CCRI-Cyberknights/stemday_2025.git
+cd stemday_2025
 ```
 
 ### 🌱 Create a Feature Branch
@@ -99,11 +102,11 @@ git checkout -b feature/my-changes
 To generate the student-facing version (removes admin tools):  
 
 ```bash
-cd CCRI_CTF/web_version_admin/create_website
+cd stemday_2025/web_version_admin/create_website
 ./build_web_version.sh
 ```
 
-This creates an obfuscated, student-ready web portal in `CCRI_CTF/web_version/`.  
+This creates an obfuscated, student-ready web portal in `stemday_2025/web_version/`.  
 
 ### 💾 Commit and Push
 
