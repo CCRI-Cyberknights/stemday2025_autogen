@@ -15,6 +15,7 @@
 !1_setup_dev_env.sh
 !start_web_hub.sh
 !stop_web_hub.sh
+!setup_contributor.sh
 
 # Docker files
 !Dockerfile
