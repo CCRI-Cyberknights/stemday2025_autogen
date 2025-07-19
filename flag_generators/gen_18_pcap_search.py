@@ -3,7 +3,7 @@
 try:
     from scapy.all import IP, TCP, Raw, wrpcap
 except ImportError:
-    print("❌ Scapy is not installed. Run: pip install scapy")
+    print("❌ Scapy is not installed. Run: sudo apt install python3-scapy")
     exit(1)
 
 import random
