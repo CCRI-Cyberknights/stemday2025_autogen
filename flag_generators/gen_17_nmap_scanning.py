@@ -10,8 +10,8 @@ from flag_generators.flag_helpers import FlagUtils
 class NmapScanFlagGenerator:
     """
     Generator for the Nmap Scanning challenge.
-    Dynamically patches web_version_admin/server.py with new ports, flags,
-    and neutral service names for realism.
+    Dynamically patches web_version_admin/server.py with random ports,
+    flags, and service names for realism.
     """
     def __init__(self, project_root: Path = None, server_file: Path = None):
         self.project_root = project_root or self.find_project_root()
@@ -29,14 +29,15 @@ class NmapScanFlagGenerator:
         print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
         sys.exit(1)
 
-    def random_ports(self, port_range, count):
-        """Pick unique random ports from a range"""
-        return random.sample(port_range, count)
+    def random_ports(self, port_range, exclude_ports, count):
+        """Pick unique random ports from a range, excluding certain ports."""
+        available = set(port_range) - set(exclude_ports)
+        return random.sample(sorted(available), count)
 
-    def patch_server_file(self, real_flag: str, fake_flags: dict, real_port: int):
+    def patch_server_file(self, real_flag: str, fake_flags: dict, real_port: int, junk_ports: dict):
         """
-        Update the FAKE_FLAGS and SERVICE_NAMES blocks in server.py
-        with new ports, flags, and neutral service names.
+        Update FAKE_FLAGS and SERVICE_NAMES in server.py with randomized ports,
+        flags, and service names.
         """
         server_file = self.server_file.resolve()
 
@@ -45,26 +46,28 @@ class NmapScanFlagGenerator:
             sys.exit(1)
 
         try:
-            # === Neutral service names for real/fake flags
-            neutral_names = [
-                "sysmon-api", "configd", "update-agent",
-                "auth-service", "metricsd", "rpc-agent", "db-syncd"
+            # === Random service names for all open ports ===
+            all_ports = [real_port] + list(fake_flags.keys()) + list(junk_ports.keys())
+            service_name_pool = [
+                "alpha-core", "delta-sync", "gamma-relay", "beta-hub",
+                "lambda-api", "omega-stream", "theta-daemon", "epsilon-sync",
+                "kappa-node", "zeta-cache", "delta-proxy", "sysmon-api",
+                "configd", "metricsd", "auth-service", "update-agent"
             ]
-            random.shuffle(neutral_names)
-            flag_service_names = {}
-            flag_ports = [real_port] + list(fake_flags.keys())
-            for i, port in enumerate(flag_ports):
-                flag_service_names[port] = neutral_names[i % len(neutral_names)]
+            random.shuffle(service_name_pool)
+            combined_service_names = {}
+            for i, port in enumerate(all_ports):
+                combined_service_names[port] = service_name_pool[i % len(service_name_pool)]
 
-            # === Build replacement FAKE_FLAGS block
+            # === Build replacement FAKE_FLAGS block ===
             new_fake_flags = [f"    {real_port}: \"{real_flag}\",       # ✅ REAL FLAG"]
             for port, flag in fake_flags.items():
                 new_fake_flags.append(f"    {port}: \"{flag}\",       # fake")
             new_fake_flags_block = "FAKE_FLAGS = {\n" + "\n".join(new_fake_flags) + "\n}"
 
-            # === Build SERVICE_NAMES update block
+            # === Build SERVICE_NAMES update block ===
             service_name_updates = [
-                f"    {port}: \"{name}\"" for port, name in flag_service_names.items()
+                f"    {port}: \"{name}\"" for port, name in combined_service_names.items()
             ]
             new_service_names_block = (
                 "SERVICE_NAMES.update({\n" +
@@ -114,19 +117,45 @@ class NmapScanFlagGenerator:
 
     def generate_flag(self, challenge_folder: Path) -> str:
         """
-        Generate a real flag, update server.py with fake/real flags and neutral service names, and return real flag.
+        Generate a real flag, update server.py with fake/real flags and randomized service names, and return real flag.
         """
-        # Select random ports
         port_range = list(range(8000, 8100))
-        selected_ports = self.random_ports(port_range, 5)
-        real_port = selected_ports[0]
+
+        # === Select random ports for flags ===
+        selected_flag_ports = self.random_ports(port_range, [], 5)
+        real_port = selected_flag_ports[0]
         real_flag = FlagUtils.generate_real_flag()
-        fake_flags = {port: FlagUtils.generate_fake_flag() for port in selected_ports[1:]}
+        fake_flags = {port: FlagUtils.generate_fake_flag() for port in selected_flag_ports[1:]}
 
-        # Patch server.py with new flags and service names
-        self.patch_server_file(real_flag, fake_flags, real_port)
+        # === Select random junk ports ===
+        junk_response_pool = {
+            "Welcome to Dev HTTP Server v1.3\nPlease login to continue.",
+            "🔒 Unauthorized: API key required.",
+            "503 Service Unavailable\nTry again later.",
+            "<html><body><h1>It works!</h1><p>Apache2 default page.</p></body></html>",
+            "DEBUG: Connection established successfully.",
+            "💡 Tip: Scan only the ports you really need.",
+            "ERROR 400: Bad request syntax.",
+            "System maintenance in progress.",
+            "Welcome to Experimental IoT Server (beta build).",
+            "Python HTTP Server: directory listing not allowed.",
+            "💻 Dev API v0.1 — POST requests only.",
+            "403 Forbidden: You don’t have permission to access this resource.",
+            "Error 418: I’m a teapot.",
+            "Hello World!\nTest endpoint active.",
+            "Server under maintenance.\nPlease retry later."
+        }
+        num_junk_ports = random.randint(8, 12)  # Pick 8–12 junk ports
+        selected_junk_ports = self.random_ports(port_range, selected_flag_ports, num_junk_ports)
+        junk_responses = {
+            port: random.choice(list(junk_response_pool))
+            for port in selected_junk_ports
+        }
 
-        # Return plaintext real flag
+        # === Patch server.py with new data ===
+        self.patch_server_file(real_flag, fake_flags, real_port, junk_responses)
+
+        # === Return plaintext real flag ===
         print(f"🏁 Real flag: {real_flag} on port {real_port}")
         for port, flag in fake_flags.items():
             print(f"🎭 Fake flag: {flag} on port {port}")
