@@ -33,12 +33,28 @@ class StegoFlagGenerator:
         print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
         sys.exit(1)
 
+    def safe_cleanup(self, challenge_folder: Path):
+        """
+        Remove only generated assets from the challenge folder.
+        """
+        for filename in ["squirrel.jpg", "hidden_flags.txt"]:
+            target = challenge_folder / filename
+            if target.exists():
+                try:
+                    target.unlink()
+                    print(f"🗑️ Removed old file: {filename}")
+                except Exception as e:
+                    print(f"⚠️ Could not delete {filename}: {e}", file=sys.stderr)
+
     def embed_flags(self, challenge_folder: Path, real_flag: str, fake_flags: list, passphrase="password"):
         """
         Copy pristine squirrel.jpg into the challenge folder and embed real + fake flags.
         """
         dest_image = challenge_folder / "squirrel.jpg"
         hidden_file = challenge_folder / "hidden_flags.txt"
+
+        # Clean up only our generated assets
+        self.safe_cleanup(challenge_folder)
 
         try:
             if not self.source_image.exists():

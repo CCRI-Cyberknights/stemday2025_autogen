@@ -42,10 +42,33 @@ class HashcatFlagGenerator:
         """Base64 encode the given text."""
         return base64.b64encode(text.encode("utf-8")).decode("utf-8")
 
+    def safe_cleanup(self, challenge_folder: Path):
+        """
+        Remove only previously generated assets (ZIPs, hashes.txt, wordlist.txt, encoded segments).
+        """
+        targets = [
+            challenge_folder / "hashes.txt",
+            challenge_folder / "wordlist.txt",
+            *challenge_folder.glob("encoded_segments*.txt"),
+        ]
+        segments_dir = challenge_folder / "segments"
+        if segments_dir.exists():
+            targets += list(segments_dir.glob("*.zip"))
+
+        for target in targets:
+            if target.exists():
+                try:
+                    target.unlink()
+                    print(f"🗑️ Removed old file: {target.relative_to(self.project_root)}")
+                except Exception as e:
+                    print(f"⚠️ Could not delete {target.name}: {e}", file=sys.stderr)
+
     def embed_flags(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
         Create hashes.txt, wordlist.txt, and password-protected ZIPs with encoded segments.
         """
+        self.safe_cleanup(challenge_folder)
+
         try:
             segments_dir = challenge_folder / "segments"
             segments_dir.mkdir(parents=True, exist_ok=True)

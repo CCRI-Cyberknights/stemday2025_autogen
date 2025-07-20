@@ -93,6 +93,17 @@ class HiddenFlagGenerator:
         print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
         sys.exit(1)
 
+    def safe_cleanup(self, base_dir: Path):
+        """
+        Clean up only the 'junk/' subfolder if it exists.
+        """
+        if base_dir.exists():
+            print(f"🗑️ Removing old folder: {base_dir.relative_to(self.project_root)}")
+            try:
+                shutil.rmtree(base_dir)
+            except Exception as e:
+                print(f"⚠️ Could not delete {base_dir.name}: {e}", file=sys.stderr)
+
     def generate_junk_for_file(self, file_name: str, flag: str = None) -> str:
         """
         Generate 3–7 lines of junk text for the specific file name,
@@ -108,10 +119,9 @@ class HiddenFlagGenerator:
         """
         Build the fixed folder structure and embed flags randomly in files.
         """
+        self.safe_cleanup(base_dir)
+
         try:
-            if base_dir.exists():
-                print(f"⚠️ Folder {base_dir.relative_to(self.project_root)} already exists. Cleaning up...")
-                shutil.rmtree(base_dir)
             base_dir.mkdir(parents=True, exist_ok=True)
         except Exception as e:
             print(f"❌ Failed to prepare folder structure: {e}", file=sys.stderr)

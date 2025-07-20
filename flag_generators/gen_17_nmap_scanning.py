@@ -108,8 +108,11 @@ class NmapScanFlagGenerator:
 
             # === Backup and write updated server.py
             backup_file = server_file.with_suffix(".bak")
-            server_file.replace(backup_file)
-            print(f"🗄️ Backup created: {backup_file.name}")
+            if not backup_file.exists():
+                server_file.replace(backup_file)
+                print(f"🗄️ Backup created: {backup_file.name}")
+            else:
+                print(f"🗄️ Backup already exists: {backup_file.name}")
 
             server_file.write_text(new_content, encoding="utf-8")
             print(f"✅ Updated {server_file.name}")

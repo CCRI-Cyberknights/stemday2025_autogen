@@ -31,6 +31,18 @@ class FixScriptFlagGenerator:
         print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
         sys.exit(1)
 
+    def safe_cleanup(self, challenge_folder: Path):
+        """
+        Remove only the previously generated broken_flag.py file.
+        """
+        script_file = challenge_folder / "broken_flag.py"
+        if script_file.exists():
+            try:
+                script_file.unlink()
+                print(f"🗑️ Removed old file: {script_file.relative_to(self.project_root)}")
+            except Exception as e:
+                print(f"⚠️ Could not delete {script_file.name}: {e}", file=sys.stderr)
+
     def find_safe_parts_and_operator(self):
         """
         Keep trying until only 1 operator gives a 4-digit result.
@@ -82,18 +94,16 @@ class FixScriptFlagGenerator:
                     print(f"⚠️ Attempt {attempt} error: {e}", file=sys.stderr)
                 continue
 
-    def embed_flag(self, challenge_folder: Path, suffix_value: int, correct_op: str, part1: int, part2: int, overwrite=False):
+    def embed_flag(self, challenge_folder: Path, suffix_value: int, correct_op: str, part1: int, part2: int):
         """
         Create broken_flag.py with randomized incorrect operator.
         """
         script_path = challenge_folder / "broken_flag.py"
 
         try:
-            challenge_folder.mkdir(parents=True, exist_ok=True)
+            self.safe_cleanup(challenge_folder)
 
-            if script_path.exists() and not overwrite:
-                print(f"⚠️ File already exists: {script_path.relative_to(self.project_root)}. Use overwrite=True to replace.")
-                return
+            challenge_folder.mkdir(parents=True, exist_ok=True)
 
             wrong_ops = [op for op in self.ALL_OPERATORS if op != correct_op]
             wrong_op = random.choice(wrong_ops)
@@ -130,11 +140,11 @@ print(f"Your flag is: CCRI-SCRP-{{int(code)}}")
             print(f"💥 Failed to write script: {e}", file=sys.stderr)
             sys.exit(1)
 
-    def generate_flag(self, challenge_folder: Path, overwrite=False) -> str:
+    def generate_flag(self, challenge_folder: Path) -> str:
         """
         Generate a real flag and embed it into broken_flag.py.
         """
         correct_op, part1, part2, suffix_value = self.find_safe_parts_and_operator()
-        self.embed_flag(challenge_folder, suffix_value, correct_op, part1, part2, overwrite=overwrite)
+        self.embed_flag(challenge_folder, suffix_value, correct_op, part1, part2)
         real_flag = f"CCRI-SCRP-{suffix_value}"
         return real_flag

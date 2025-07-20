@@ -120,14 +120,18 @@ class SubdomainSweepFlagGenerator:
 
     def clean_old_subdomain_html(self, challenge_folder: Path):
         """
-        Remove any existing subdomain HTML files to avoid stale data.
+        Remove only existing subdomain HTML files (*.liber8.local.html).
         """
-        for file in challenge_folder.glob("*.liber8.local.html"):
-            try:
-                file.unlink()
-                print(f"🗑️ Removed old file: {file.name}")
-            except Exception as e:
-                print(f"⚠️ Could not delete {file.name}: {e}", file=sys.stderr)
+        if challenge_folder.exists():
+            for file in challenge_folder.glob("*.liber8.local.html"):
+                try:
+                    file.unlink()
+                    print(f"🗑️ Removed old file: {file.name}")
+                except Exception as e:
+                    print(f"⚠️ Could not delete {file.name}: {e}", file=sys.stderr)
+        else:
+            print(f"📁 Creating challenge folder: {challenge_folder.relative_to(self.project_root)}")
+            challenge_folder.mkdir(parents=True, exist_ok=True)
 
     def embed_subdomain_html(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """

@@ -30,6 +30,22 @@ class ExtractBinaryFlagGenerator:
         print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
         sys.exit(1)
 
+    def safe_cleanup(self, challenge_folder: Path):
+        """
+        Remove only previously generated files for this challenge.
+        """
+        targets = [
+            challenge_folder / "hidden_flag",     # compiled binary
+            challenge_folder / "hidden_flag.c"    # C source file
+        ]
+        for target in targets:
+            if target.exists():
+                try:
+                    target.unlink()
+                    print(f"🗑️ Removed old file: {target.relative_to(self.project_root)}")
+                except Exception as e:
+                    print(f"⚠️ Could not delete {target.name}: {e}", file=sys.stderr)
+
     def generate_c_source(self, real_flag: str, fake_flags: list) -> str:
         """
         Generate C source code with embedded real + fake flags.
@@ -79,12 +95,9 @@ int main() {{
         """
         Generate C source, compile it, and place binary in challenge folder.
         """
-        try:
-            if not challenge_folder.exists():
-                raise FileNotFoundError(
-                    f"❌ Challenge folder does not exist: {challenge_folder.relative_to(self.project_root)}"
-                )
+        self.safe_cleanup(challenge_folder)
 
+        try:
             # Paths
             c_file = challenge_folder / "hidden_flag.c"
             binary_file = challenge_folder / "hidden_flag"

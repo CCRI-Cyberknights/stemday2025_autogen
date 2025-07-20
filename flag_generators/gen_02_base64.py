@@ -30,11 +30,26 @@ class Base64FlagGenerator:
         print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
         sys.exit(1)
 
+    def safe_cleanup(self, challenge_folder: Path):
+        """
+        Remove only generated assets from the challenge folder.
+        """
+        encoded_file = challenge_folder / "encoded.txt"
+        if encoded_file.exists():
+            try:
+                encoded_file.unlink()
+                print(f"🗑️ Removed old file: {encoded_file.name}")
+            except Exception as e:
+                print(f"⚠️ Could not delete {encoded_file.name}: {e}", file=sys.stderr)
+
     def embed_flags(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
         Create encoded.txt in the challenge folder with base64-encoded intercepted message.
         """
         encoded_file = challenge_folder / "encoded.txt"
+
+        # Clean up only our generated file
+        self.safe_cleanup(challenge_folder)
 
         try:
             if not challenge_folder.exists():

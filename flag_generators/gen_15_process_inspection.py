@@ -103,6 +103,14 @@ class ProcessInspectionFlagGenerator:
         challenge_folder.mkdir(parents=True, exist_ok=True)
         dump_file = challenge_folder / "ps_dump.txt"
 
+        # Overwrite only ps_dump.txt
+        if dump_file.exists():
+            try:
+                dump_file.unlink()
+                print(f"🗑️ Removed old file: {dump_file.name}")
+            except Exception as e:
+                print(f"⚠️ Could not remove old ps_dump.txt: {e}", file=sys.stderr)
+
         try:
             lines = ["USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND"]
             # Add random background noise

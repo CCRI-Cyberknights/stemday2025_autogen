@@ -49,11 +49,26 @@ class VigenereFlagGenerator:
                 result.append(char)  # Leave non-alpha chars unchanged
         return ''.join(result)
 
+    def safe_cleanup(self, challenge_folder: Path):
+        """
+        Remove only generated assets from the challenge folder.
+        """
+        cipher_file = challenge_folder / "cipher.txt"
+        if cipher_file.exists():
+            try:
+                cipher_file.unlink()
+                print(f"🗑️ Removed old file: {cipher_file.name}")
+            except Exception as e:
+                print(f"⚠️ Could not delete {cipher_file.name}: {e}", file=sys.stderr)
+
     def embed_flags(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
         Create cipher.txt in the challenge folder with a Vigenère-encrypted message.
         """
         cipher_file = challenge_folder / "cipher.txt"
+
+        # Clean up only our generated file
+        self.safe_cleanup(challenge_folder)
 
         try:
             if not challenge_folder.exists():

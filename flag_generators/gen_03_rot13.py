@@ -40,10 +40,8 @@ class ROT13FlagGenerator:
     def animate_rot13_line_by_line(text_lines, delay=0.05):
         """Animate ROT13 transformation line-by-line for helper script."""
         print("🔄 Applying ROT13 transformation...\n")
-
         for line in text_lines:
             original = line.rstrip("\n")
-
             for shift in range(1, 14):  # ROT13 is 13 shifts
                 rotated = "".join(
                     chr(((ord(c) - ord('A') + 1) % 26 + ord('A')) if c.isupper()
@@ -55,16 +53,30 @@ class ROT13FlagGenerator:
                 sys.stdout.flush()
                 original = rotated  # Update for next shift
                 time.sleep(delay)
-
             print(rotated)  # Print fully rotated line
             time.sleep(0.2)  # Pause before next line
         print("\n✅ ROT13 transformation complete.")
+
+    def safe_cleanup(self, challenge_folder: Path):
+        """
+        Remove only generated assets from the challenge folder.
+        """
+        cipher_file = challenge_folder / "cipher.txt"
+        if cipher_file.exists():
+            try:
+                cipher_file.unlink()
+                print(f"🗑️ Removed old file: {cipher_file.name}")
+            except Exception as e:
+                print(f"⚠️ Could not delete {cipher_file.name}: {e}", file=sys.stderr)
 
     def embed_flags(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
         Create cipher.txt in the challenge folder with an entire ROT13-encoded message.
         """
         cipher_file = challenge_folder / "cipher.txt"
+
+        # Clean up only our generated file
+        self.safe_cleanup(challenge_folder)
 
         try:
             if not challenge_folder.exists():

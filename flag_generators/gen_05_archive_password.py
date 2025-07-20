@@ -32,10 +32,25 @@ class ArchivePasswordFlagGenerator:
         print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
         sys.exit(1)
 
+    def safe_cleanup(self, challenge_folder: Path):
+        """
+        Remove only generated assets from the challenge folder.
+        """
+        for filename in ["wordlist.txt", "message_encoded.txt", "secret.zip"]:
+            target_file = challenge_folder / filename
+            if target_file.exists():
+                try:
+                    target_file.unlink()
+                    print(f"🗑️ Removed old file: {target_file.name}")
+                except Exception as e:
+                    print(f"⚠️ Could not delete {target_file.name}: {e}", file=sys.stderr)
+
     def embed_flags(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
         Create wordlist.txt and password-protected secret.zip containing message_encoded.txt.
         """
+        self.safe_cleanup(challenge_folder)
+
         try:
             if not challenge_folder.exists():
                 raise FileNotFoundError(

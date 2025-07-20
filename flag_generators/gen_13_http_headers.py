@@ -124,14 +124,18 @@ This endpoint returns plain text responses."""
 
     def clean_old_responses(self, challenge_folder: Path):
         """
-        Remove old response_*.txt files from challenge folder.
+        Remove only old response_*.txt files from challenge folder.
         """
-        for old_file in challenge_folder.glob("response_*.txt"):
-            try:
-                old_file.unlink()
-                print(f"🗑️ Removed old file: {old_file.name}")
-            except Exception as e:
-                print(f"⚠️ Could not delete {old_file.name}: {e}", file=sys.stderr)
+        if challenge_folder.exists():
+            for old_file in challenge_folder.glob("response_*.txt"):
+                try:
+                    old_file.unlink()
+                    print(f"🗑️ Removed old file: {old_file.name}")
+                except Exception as e:
+                    print(f"⚠️ Could not delete {old_file.name}: {e}", file=sys.stderr)
+        else:
+            print(f"📁 Creating challenge folder: {challenge_folder.relative_to(self.project_root)}")
+            challenge_folder.mkdir(parents=True, exist_ok=True)
 
     def embed_http_responses(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """

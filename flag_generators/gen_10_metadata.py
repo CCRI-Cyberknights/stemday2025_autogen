@@ -33,6 +33,21 @@ class MetadataFlagGenerator:
         print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
         sys.exit(1)
 
+    def safe_cleanup(self, challenge_folder: Path):
+        """
+        Remove only previously generated capybara.jpg and exiftool backup if present.
+        """
+        dest_image = challenge_folder / "capybara.jpg"
+        backup_file = dest_image.with_suffix(dest_image.suffix + "_original")
+
+        for file in [dest_image, backup_file]:
+            if file.exists():
+                try:
+                    file.unlink()
+                    print(f"🗑️ Removed old file: {file.relative_to(self.project_root)}")
+                except Exception as e:
+                    print(f"⚠️ Could not delete {file.name}: {e}", file=sys.stderr)
+
     def embed_flags(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
         Copy pristine capybara.jpg into the challenge folder and embed real + fake flags in EXIF metadata.
@@ -44,8 +59,9 @@ class MetadataFlagGenerator:
             print("❌ exiftool is not installed. Please install it first (e.g., sudo apt install libimage-exiftool-perl).", file=sys.stderr)
             sys.exit(1)
 
-        # === Ensure challenge folder exists ===
+        # === Ensure challenge folder exists and clean old files ===
         challenge_folder.mkdir(parents=True, exist_ok=True)
+        self.safe_cleanup(challenge_folder)
 
         # === Copy clean capybara.jpg into challenge folder ===
         try:

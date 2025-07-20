@@ -30,15 +30,29 @@ class FakeAuthLogFlagGenerator:
         print("❌ ERROR: Could not find .ccri_ctf_root marker. Are you inside the CTF folder?", file=sys.stderr)
         sys.exit(1)
 
+    def safe_cleanup(self, challenge_folder: Path):
+        """
+        Remove only the previously generated auth.log file.
+        """
+        log_file = challenge_folder / "auth.log"
+        if log_file.exists():
+            try:
+                log_file.unlink()
+                print(f"🗑️ Removed old file: {log_file.relative_to(self.project_root)}")
+            except Exception as e:
+                print(f"⚠️ Could not delete {log_file.name}: {e}", file=sys.stderr)
+
     def embed_flags(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
         Generate a fake auth.log file with real and fake flags embedded as PIDs.
         """
         try:
-            log_path = challenge_folder / "auth.log"
+            self.safe_cleanup(challenge_folder)
 
             # Ensure challenge folder exists
             challenge_folder.mkdir(parents=True, exist_ok=True)
+
+            log_path = challenge_folder / "auth.log"
 
             # Sample data
             usernames = ["alice", "bob", "charlie", "dave", "eve"]

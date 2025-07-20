@@ -50,13 +50,17 @@ class QRCodeFlagGenerator:
             sys.exit(1)
 
     def clean_qr_codes(self, folder: Path):
-        """Remove any old QR codes in the challenge folder."""
-        try:
-            for qr_file in folder.glob("qr_*.png"):
-                qr_file.unlink()
-                print(f"🗑️ Removed old file: {qr_file.name}")
-        except Exception as e:
-            print(f"⚠️ Could not delete QR code(s) in {folder.relative_to(self.project_root)}: {e}", file=sys.stderr)
+        """Remove only old QR codes (qr_*.png) in the challenge folder."""
+        if folder.exists():
+            try:
+                for qr_file in folder.glob("qr_*.png"):
+                    qr_file.unlink()
+                    print(f"🗑️ Removed old QR code: {qr_file.name}")
+            except Exception as e:
+                print(f"⚠️ Could not delete QR code(s) in {folder.relative_to(self.project_root)}: {e}", file=sys.stderr)
+        else:
+            print(f"📁 Creating challenge folder: {folder.relative_to(self.project_root)}")
+            folder.mkdir(parents=True, exist_ok=True)
 
     def embed_flags_as_qr(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
@@ -69,8 +73,8 @@ class QRCodeFlagGenerator:
         random.shuffle(all_flags)
 
         print(f"🎭 Fake flags: {', '.join(fake_flags)}")
-
         print(f"🎯 Generating QR codes in: {challenge_folder.relative_to(self.project_root)}")
+
         for i, flag in enumerate(all_flags, start=1):
             qr_file = challenge_folder / f"qr_{i:02}.png"
             self.create_qr_code(qr_file, flag)

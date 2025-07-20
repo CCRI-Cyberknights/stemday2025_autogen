@@ -43,6 +43,18 @@ class HexHuntingFlagGenerator:
         """
         Generate hex_flag.bin in the challenge folder.
         """
+        challenge_folder.mkdir(parents=True, exist_ok=True)
+
+        output_path = challenge_folder / "hex_flag.bin"
+
+        # Overwrite only hex_flag.bin
+        if output_path.exists():
+            try:
+                output_path.unlink()
+                print(f"🗑️ Removed old file: {output_path.name}")
+            except Exception as e:
+                print(f"⚠️ Could not remove {output_path.name}: {e}", file=sys.stderr)
+
         binary_size = random.randint(1024, 1536)
         binary_data = bytearray(os.urandom(binary_size))
 
@@ -63,7 +75,6 @@ class HexHuntingFlagGenerator:
             self.insert_flag(binary_data, flag, offset)
 
         # Write binary file
-        output_path = challenge_folder / "hex_flag.bin"
         output_path.write_bytes(binary_data)
 
         print(f"✅ hex_flag.bin generated in {challenge_folder.relative_to(self.project_root)}")
@@ -82,8 +93,6 @@ class HexHuntingFlagGenerator:
         """
         Generate real and fake flags, embed them, and return the real flag.
         """
-        challenge_folder.mkdir(parents=True, exist_ok=True)
-
         real_flag = FlagUtils.generate_real_flag()
         fake_flags = list({FlagUtils.generate_fake_flag() for _ in range(4)})
 

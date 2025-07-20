@@ -88,6 +88,17 @@ class PcapSearchFlagGenerator:
         """
         Generate traffic.pcap file with noise, fake flags, and one real flag.
         """
+        challenge_folder.mkdir(parents=True, exist_ok=True)
+
+        # Remove old traffic.pcap if it exists
+        output_file = challenge_folder / "traffic.pcap"
+        if output_file.exists():
+            try:
+                output_file.unlink()
+                print(f"🗑️ Removed old file: {output_file.relative_to(self.project_root)}")
+            except Exception as e:
+                print(f"⚠️ Could not delete old traffic.pcap: {e}", file=sys.stderr)
+
         packets = []
 
         # Random noise traffic (~150 conversations)
@@ -110,8 +121,7 @@ class PcapSearchFlagGenerator:
         # Shuffle packets for realism
         random.shuffle(packets)
 
-        # Write PCAP (overwrites if exists)
-        output_file = challenge_folder / "traffic.pcap"
+        # Write PCAP (overwrite safely)
         wrpcap(str(output_file), packets)
 
         print(f"✅ traffic.pcap created: {output_file.relative_to(self.project_root)}")
