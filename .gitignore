@@ -42,3 +42,4 @@ web_version/**
 !web_version_admin/
 !web_version_admin/**
 web_version_admin/server.bak
+web_version_admin/challenges.json.bak
