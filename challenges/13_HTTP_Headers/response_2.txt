@@ -1,19 +1,15 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:57:44 GMT
+Date: Sun, 30 Jun 2025 15:47:45 GMT
 Server: nginx/1.24.0
-Content-Type: text/html; charset=UTF-8
-Cache-Control: private, no-cache
-X-Powered-By: Python/3.11.4
-X-Flag: GNMR-INMA-1029
+Content-Type: text/plain; charset=UTF-8
+Cache-Control: no-store
+X-Powered-By: Node.js/18.16.0
+X-Flag: EXFB-HLFP-0241
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
+Set-Cookie: sessionid=yk0hzso5atr5; HttpOnly; Secure
 
-<html>
-  <head><title>Liber8 Portal</title></head>
-  <body>
-    <h1>Welcome to Liber8</h1>
-    <p>System maintenance is underway. Some services may be unavailable.</p>
-  </body>
-</html>
+Welcome to the Liber8 data endpoint.
+This endpoint returns plain text responses.
 
-<!-- Debug: Temporary caching enabled -->
+<!-- Developer note: Remove X-Test headers before release -->

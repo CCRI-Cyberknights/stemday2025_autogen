@@ -1,15 +1,20 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:52:41 GMT
-Server: Go HTTP Server/1.19
-Content-Type: text/html; charset=UTF-8
+Date: Sun, 30 Jun 2025 15:57:19 GMT
+Server: nginx/1.24.0
+Content-Type: text/plain; charset=UTF-8
 Cache-Control: no-store
 X-Powered-By: PHP/8.1.12
-X-Flag: CCRI-PUAP-4447
+X-Flag: XIRM-4666-OEOA
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
-Set-Cookie: sessionid=rl0h7e46525l; HttpOnly; Secure
+Set-Cookie: sessionid=bksbs4drwqyz; HttpOnly; Secure
 
-Welcome to the Liber8 data endpoint.
-This endpoint returns plain text responses.
+<html>
+  <head><title>Data Service</title></head>
+  <body>
+    <h1>Data Service Ready</h1>
+    <p>Connect your client application to begin.</p>
+  </body>
+</html>
 
-<!-- Debug: Session created for client 10.6.112.3 -->
+<!-- Debug: API response size 512 bytes -->

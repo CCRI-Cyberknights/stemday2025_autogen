@@ -1,20 +1,20 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:50:53 GMT
-Server: Liber8-Server/3.0.0-beta
-Content-Type: application/json
-Cache-Control: public, max-age=86400
-X-Powered-By: ASP.NET Core/7.0
-X-Flag: AOGP-PIRC-2532
+Date: Sun, 30 Jun 2025 15:56:47 GMT
+Server: Go HTTP Server/1.19
+Content-Type: text/plain; charset=UTF-8
+Cache-Control: private, no-cache
+X-Powered-By: Ruby on Rails/7.1.0
+X-Flag: CCRI-GCPG-2442
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
-Set-Cookie: sessionid=7o8mglh84tyi; HttpOnly; Secure
+Set-Cookie: sessionid=huu8v48ho8hx; HttpOnly; Secure
 
 <html>
-  <head><title>Internal Dashboard</title></head>
+  <head><title>Liber8 Portal</title></head>
   <body>
-    <h1>Liber8 Ops Dashboard</h1>
-    <p>Authentication successful. Redirecting...</p>
+    <h1>Welcome to Liber8</h1>
+    <p>System maintenance is underway. Some services may be unavailable.</p>
   </body>
 </html>
 
-<!-- To-do: Update security headers on staging -->
+<!-- Debug: Session created for client 10.6.112.3 -->

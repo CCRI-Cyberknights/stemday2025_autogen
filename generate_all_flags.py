@@ -115,10 +115,8 @@ class FlagGenerationManager:
                     if self.dry_run
                     else Path(challenge.getFolder())
                 )
-                
-                # Always overwrite existing challenge folders
-                if target_folder.exists():
-                    shutil.rmtree(target_folder)
+
+                # Create challenge folder if it doesn't exist (non-destructive)
                 target_folder.mkdir(parents=True, exist_ok=True)
 
                 print(f"🚀 Generating flag for {challenge.getId()}...")
@@ -127,7 +125,7 @@ class FlagGenerationManager:
                 if generator_cls:
                     generator = generator_cls()
 
-                    # Run flag generation (force overwrite=True where applicable)
+                    # Run flag generation
                     real_flag = generator.generate_flag(target_folder)
                     fake_flags = getattr(generator, "last_fake_flags", [])
 
