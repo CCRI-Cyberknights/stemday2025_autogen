@@ -22,12 +22,18 @@ To set up the admin environment and clone this repository, run:
 bash <(curl -fsSL https://raw.githubusercontent.com/CCRI-Cyberknights/stemday_2025/main/setup_contributor.sh)
 ```
 
+➡️ **(Python alternative):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CCRI-Cyberknights/stemday_2025/main/setup_contributor.py | python3 -
+```
+
 This will:
 ✅ Install Git and all required tools
 ✅ Configure Git credentials (if not already set)
 ✅ Clone this repository into your current directory
 
-⚠️ **Note:** This script is intended for Parrot OS or other Debian-based systems (like Ubuntu).
+⚠️ **Note:** These scripts are intended for Parrot OS or other Debian-based systems (like Ubuntu).
 
 ---
 
@@ -100,10 +106,10 @@ To build and distribute the student-facing CTF experience:
 
 ## 🙌 Club Member Guidelines
 
-✅ Keep admin-only flags and tools **out of `web_version/`**
-✅ Test all scripts thoroughly before release
-✅ Use relative paths for portability
-✅ Don’t commit `.pyc` files or student-only builds
+✅ Keep admin-only flags and tools **out of `web_version/`**  
+✅ Test all scripts thoroughly before release  
+✅ Use relative paths for portability  
+✅ Don’t commit `.pyc` files or student-only builds  
 
 ---
 

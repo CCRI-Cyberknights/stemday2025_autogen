@@ -16,22 +16,22 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 def pause(prompt="Press ENTER to continue..."):
     input(prompt)
 
-def run_bash_script(script_path):
+def run_python_script(script_path):
     try:
         result = subprocess.run(
-            ["bash", script_path],
+            [sys.executable, script_path],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
         )
         return result.stdout.strip()
     except FileNotFoundError:
-        print("❌ ERROR: bash not found on this system.")
+        print("❌ ERROR: Python interpreter not found.")
         sys.exit(1)
 
 def replace_operator(script_path, new_operator):
@@ -40,8 +40,8 @@ def replace_operator(script_path, new_operator):
             lines = f.readlines()
         with open(script_path, "w") as f:
             for line in lines:
-                if "code=$((part1" in line:
-                    f.write(f"code=$((part1 {new_operator} part2))\n")
+                if "code =" in line and any(op in line for op in ["+", "-", "*", "/"]):
+                    f.write(f"code = part1 {new_operator} part2  # <- fixed math\n")
                 else:
                     f.write(line)
     except Exception as e:
@@ -51,26 +51,26 @@ def replace_operator(script_path, new_operator):
 def main():
     project_root = find_project_root()
     script_dir = os.path.abspath(os.path.dirname(__file__))
-    broken_script = os.path.join(script_dir, "broken_flag.sh")
+    broken_script = os.path.join(script_dir, "broken_flag.py")
     flag_output_file = os.path.join(script_dir, "flag.txt")
 
     clear_screen()
     print("🧪 Challenge #09 – Fix the Flag! (Python Edition)")
     print("===============================================\n")
-    print("📄 You found a broken Bash script! Here’s what it looks like:\n")
-    print("""#!/bin/bash
+    print("📄 You found a broken Python script! Here’s what it looks like:\n")
+    print("""#!/usr/bin/env python3
 
-part1=900
-part2=198
+part1 = 900
+part2 = 198
 
 # MATH ERROR!
-code=$((part1 - part2))
+code = part1 - part2  # <- wrong math
 
-echo "Your flag is: CCRI-SCRP-$code"\n""")
+print(f"Your flag is: CCRI-SCRP-{code}")\n""")
     print("===============================================\n")
 
     if not os.path.isfile(broken_script):
-        print("❌ ERROR: missing required file 'broken_flag.sh'.")
+        print("❌ ERROR: missing required file 'broken_flag.py'.")
         pause("Press ENTER to close this terminal...")
         sys.exit(1)
 
@@ -78,9 +78,9 @@ echo "Your flag is: CCRI-SCRP-$code"\n""")
     print("⚠️ But the result isn’t in the correct 4-digit format!\n")
     pause("Press ENTER to run the script and see what happens...")
 
-    print("\n💻 Running: bash broken_flag.sh")
+    print("\n💻 Running: python broken_flag.py")
     print("----------------------------------------------")
-    output = run_bash_script(broken_script)
+    output = run_python_script(broken_script)
     print(output)
     print("----------------------------------------------\n")
     time.sleep(1)
@@ -90,7 +90,7 @@ echo "Your flag is: CCRI-SCRP-$code"\n""")
     # Interactive repair loop
     while True:
         print("🛠️  Your task: Fix the broken line in the script.\n")
-        print("    code=$((part1 - part2))\n")
+        print("    code = part1 - part2\n")
         print("👉 Which operator should we use instead of '-' to calculate the flag?")
         print("   Choices: +   -   *   /\n")
         op = input("Enter your choice: ").strip()
@@ -101,7 +101,7 @@ echo "Your flag is: CCRI-SCRP-$code"\n""")
             print("🔧 Updating the script with '+'...\n")
             replace_operator(broken_script, "+")
             print("🎉 Re-running the fixed script...")
-            fixed_output = run_bash_script(broken_script)
+            fixed_output = run_python_script(broken_script)
             flag_line = next((line for line in fixed_output.splitlines() if "CCRI-SCRP" in line), None)
             print("----------------------------------------------")
             print(flag_line)

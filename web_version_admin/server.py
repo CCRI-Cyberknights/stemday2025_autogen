@@ -198,28 +198,40 @@ def run_script(challenge_id):
         return jsonify({"status": "error", "message": f"Script '{selectedChallenge.getScript()}' not found."}), 404
 
     try:
+        # Determine command based on file extension
+        if script_path.endswith(".sh"):
+            run_command = f"bash \"{script_path}\""
+        elif script_path.endswith(".py"):
+            run_command = f"python3 \"{script_path}\""
+        else:
+            return jsonify({"status": "error", "message": "Unsupported script type."}), 400
+
+        # Preferred terminal: parrot-terminal
         if os.path.exists("/etc/parrot"):
-            print("🐦 Detected Parrot OS. Forcing parrot-terminal.")
+            print("🐦 Detected Parrot OS. Using parrot-terminal.")
             subprocess.Popen([
                 "parrot-terminal",
                 "--working-directory", selectedChallenge.getFolder(),
-                "-e", f"bash \"{script_path}\""
+                "-e", run_command
             ], shell=False)
             return jsonify({"status": "success"})
 
+        # Fallback terminals
         fallback_terminals = ["gnome-terminal", "konsole", "xfce4-terminal", "lxterminal"]
         for term in fallback_terminals:
             if subprocess.call(["which", term], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0:
                 subprocess.Popen([
                     term,
                     "--working-directory", selectedChallenge.getFolder(),
-                    "-e", f"bash \"{script_path}\""
+                    "-e", run_command
                 ], shell=False)
                 return jsonify({"status": "success"})
 
+        # If no terminal emulator is found
         return jsonify({"status": "error", "message": "No supported terminal emulator found."}), 500
 
     except Exception as e:
+        print(f"❌ Failed to launch helper script: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # === Simulated Open Ports (Realistic Nmap Network) ===
