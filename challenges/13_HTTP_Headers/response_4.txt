@@ -1,15 +1,14 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:52:30 GMT
-Server: Go HTTP Server/1.19
-Content-Type: application/json
-Cache-Control: private, no-cache
-X-Powered-By: Ruby on Rails/7.1.0
-X-Flag: EZCN-ZTBZ-4389
+Date: Sun, 30 Jun 2025 15:52:17 GMT
+Server: Apache/2.4.54 (Ubuntu)
+Content-Type: text/plain; charset=UTF-8
+Cache-Control: no-store
+X-Powered-By: PHP/8.1.12
+X-Flag: CBDV-HGSY-0120
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
-Set-Cookie: sessionid=llt3t9bhllt8; HttpOnly; Secure
 
 Welcome to the Liber8 data endpoint.
 This endpoint returns plain text responses.
 
-<!-- Debug: API response size 512 bytes -->
+<!-- Debug: Session created for client 10.6.112.3 -->

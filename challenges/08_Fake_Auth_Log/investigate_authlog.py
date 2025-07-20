@@ -3,6 +3,8 @@ import os
 import sys
 import subprocess
 import time
+import json
+import re
 
 # === Auth Log Investigation Helper ===
 
@@ -16,17 +18,80 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
+
+def scan_for_flags(log_file, regex_pattern):
+    matches = []
+    try:
+        with open(log_file, "r") as f:
+            for line in f:
+                if re.search(regex_pattern, line):
+                    matches.append(line.strip())
+    except Exception as e:
+        print(f"❌ ERROR while scanning auth.log: {e}", file=sys.stderr)
+        sys.exit(1)
+    return matches
+
+def flatten_authlog_dir(script_dir):
+    """
+    Move auth.log to script_dir if it’s inside a nested directory
+    and remove empty folders.
+    """
+    for root, dirs, files in os.walk(script_dir):
+        for f in files:
+            if f == "auth.log" and root != script_dir:
+                src = os.path.join(root, f)
+                dst = os.path.join(script_dir, f)
+                if not os.path.exists(dst):
+                    os.rename(src, dst)
+        # Remove empty dirs
+        for d in dirs:
+            dir_to_remove = os.path.join(root, d)
+            try:
+                os.rmdir(dir_to_remove)
+            except OSError:
+                pass  # Ignore if not empty
 
 def main():
     project_root = find_project_root()
     script_dir = os.path.abspath(os.path.dirname(__file__))
     log_file = os.path.join(script_dir, "auth.log")
     candidates_file = os.path.join(script_dir, "flag_candidates.txt")
+    regex_pattern = r"\bCCRI-[A-Z0-9]{4}-\d{4}\b"
 
+    # Flatten directory in case of nested auth.log
+    flatten_authlog_dir(script_dir)
+
+    # === Validation Mode: Silent flag check ===
+    if validation_mode:
+        unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            with open(unlock_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            expected_flag = unlocks["08_FakeAuthLog"]["real_flag"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        if not os.path.isfile(log_file):
+            print(f"❌ ERROR: auth.log not found in {script_dir}.", file=sys.stderr)
+            sys.exit(1)
+
+        matches = scan_for_flags(log_file, regex_pattern)
+
+        if expected_flag in matches:
+            print(f"✅ Validation success: found flag {expected_flag}")
+            sys.exit(0)
+        else:
+            print(f"❌ Validation failed: flag {expected_flag} not found in auth.log.", file=sys.stderr)
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     clear_screen()
     print("🕵️‍♂️ Auth Log Investigation")
     print("==============================\n")
@@ -34,18 +99,14 @@ def main():
     print("🔧 Tool in use: grep\n")
     print("🎯 Goal: Identify a suspicious login record by analyzing fake auth logs.")
     print("   ➡️ One of these records contains a **PID** that hides the real flag!\n")
-    print("💡 Why grep?")
-    print("   ➡️ 'grep' helps us search for patterns in large text files.")
-    print("   ➡️ We'll look for strange PIDs (e.g., ones containing dashes or letters).\n")
     pause()
 
-    # Check for auth.log
     if not os.path.isfile(log_file):
         print(f"\n❌ ERROR: auth.log not found in {script_dir}.")
         pause("Press ENTER to close this terminal...")
         sys.exit(1)
 
-    # Show preview
+    # Preview auth.log
     print("\n📄 Preview: First 10 lines from auth.log")
     print("-------------------------------------------")
     try:
@@ -60,45 +121,30 @@ def main():
     print("-------------------------------------------\n")
     pause("Press ENTER to scan for suspicious entries...")
 
-    # Scan for suspicious PID patterns
-    print("\n🔍 Scanning for entries with unusual PID patterns (e.g., [CCRI-XXXX-1234] or containing dashes)...")
+    # Scan for CCRI-style flags
+    print("\n🔍 Scanning for entries with flag-like patterns (format: CCRI-XXXX-1234)...")
     time.sleep(0.5)
-    match_pattern = r"\[[A-Z0-9\-]{8,}\]"
-    try:
-        with open(candidates_file, "w") as out_f:
-            subprocess.run(
-                ["grep", "-E", match_pattern, log_file],
-                stdout=out_f,
-                stderr=subprocess.DEVNULL
-            )
-    except Exception as e:
-        print(f"❌ ERROR while scanning: {e}")
-        sys.exit(1)
+    matches = scan_for_flags(log_file, regex_pattern)
 
-    try:
-        with open(candidates_file, "r") as f:
-            lines = f.readlines()
-        cand_count = len(lines)
-    except FileNotFoundError:
-        cand_count = 0
+    if matches:
+        with open(candidates_file, "w") as f_out:
+            for line in matches:
+                f_out.write(line + "\n")
 
-    if cand_count == 0:
+        print(f"\n📌 Found {len(matches)} potential flag(s).")
+        print(f"💾 Saved to: {candidates_file}\n")
+        pause("Press ENTER to preview suspicious entries...")
+        print("\n-------------------------------------------")
+        for i, line in enumerate(matches):
+            if i >= 5:
+                print("... (only first 5 shown)")
+                break
+            print(line)
+        print("-------------------------------------------\n")
+    else:
         print("⚠️ No suspicious entries found in auth.log.")
         pause("Press ENTER to close this terminal...")
         sys.exit(0)
-
-    print(f"\n📌 Found {cand_count} potential suspicious line(s).")
-    print(f"💾 Saved to: {candidates_file}\n")
-
-    # Preview suspicious lines
-    pause("Press ENTER to preview suspicious entries...")
-    print("\n-------------------------------------------")
-    for i, line in enumerate(lines):
-        if i >= 5:
-            print("... (only first 5 shown)")
-            break
-        print(line.strip())
-    print("-------------------------------------------\n")
 
     # Optional search
     pattern = input("🔎 Enter a username, IP, or keyword to search in the full log (or press ENTER to skip): ").strip()
@@ -114,10 +160,10 @@ def main():
     else:
         print("⏭️  Skipping custom search.")
 
-    # Wrap-up
     print("\n🧠 Hint: One of the flagged PIDs hides the official flag!")
     print("   Format: CCRI-AAAA-1111\n")
     pause("Press ENTER to close this terminal...")
 
 if __name__ == "__main__":
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()

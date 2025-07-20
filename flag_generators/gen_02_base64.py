@@ -3,6 +3,7 @@
 from pathlib import Path
 import base64
 import random
+import json
 import sys
 from flag_generators.flag_helpers import FlagUtils
 
@@ -10,13 +11,13 @@ from flag_generators.flag_helpers import FlagUtils
 class Base64FlagGenerator:
     """
     Generator for the Base64 intercepted message challenge.
-    Encodes an intercepted transmission (including flags) into encoded.txt.
+    Encodes an intercepted transmission (including flags) into encoded.txt
+    and stores unlock metadata for validation workflow.
     """
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
-
-        # === Exported unlock data for validation ===
-        self.last_fake_flags = []
+        self.metadata = {}  # For unlock info
+        self.unlock_file = self.project_root / "web_version_admin" / "validation_unlocks.json"
 
     @staticmethod
     def find_project_root() -> Path:
@@ -41,6 +42,26 @@ class Base64FlagGenerator:
                 print(f"🗑️ Removed old file: {encoded_file.name}")
             except Exception as e:
                 print(f"⚠️ Could not delete {encoded_file.name}: {e}", file=sys.stderr)
+
+    def update_validation_unlocks(self):
+        """
+        Save self.metadata into validation_unlocks.json for 02_Base64.
+        """
+        try:
+            if self.unlock_file.exists():
+                with open(self.unlock_file, "r", encoding="utf-8") as f:
+                    unlocks = json.load(f)
+            else:
+                unlocks = {}
+
+            unlocks["02_Base64"] = self.metadata
+
+            with open(self.unlock_file, "w", encoding="utf-8") as f:
+                json.dump(unlocks, f, indent=2)
+            print(f"💾 Metadata saved: {self.unlock_file.relative_to(self.project_root)}")
+        except Exception as e:
+            print(f"❌ Failed to update validation_unlocks.json: {e}", file=sys.stderr)
+            sys.exit(1)
 
     def embed_flags(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
@@ -80,10 +101,19 @@ class Base64FlagGenerator:
             encoded_message = base64.b64encode(message.encode("utf-8")).decode("utf-8")
 
             # Write to encoded.txt
-            encoded_file.write_text(
-                encoded_message + "\n"
-            )
+            encoded_file.write_text(encoded_message + "\n")
             print(f"📄 {encoded_file.relative_to(self.project_root)} created with Base64-encoded transmission.")
+
+            # ✅ Record unlock metadata
+            self.metadata = {
+                "real_flag": real_flag,
+                "challenge_file": str(encoded_file.relative_to(self.project_root)),
+                "unlock_method": "Base64 decode",
+                "hint": "Decode encoded.txt using base64 -d or an online tool."
+            }
+
+            # Save metadata to validation_unlocks.json
+            self.update_validation_unlocks()
 
         except PermissionError:
             print(f"❌ Permission denied: Cannot write to {encoded_file.relative_to(self.project_root)}")
@@ -103,8 +133,6 @@ class Base64FlagGenerator:
         # Ensure real flag isn’t duplicated accidentally
         while real_flag in fake_flags:
             real_flag = FlagUtils.generate_real_flag()
-
-        self.last_fake_flags = fake_flags  # Store for validation
 
         self.embed_flags(challenge_folder, real_flag, fake_flags)
         print('   🎭 Fake flags:', ', '.join(fake_flags))

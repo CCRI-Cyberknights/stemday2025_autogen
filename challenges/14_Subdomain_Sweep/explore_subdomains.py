@@ -2,6 +2,7 @@
 import os
 import sys
 import subprocess
+import json
 
 # === Subdomain Sweep ===
 
@@ -15,10 +16,32 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
+
+def flatten_html_files(script_dir, domains):
+    """
+    Move all *.html files to script_dir if they are nested
+    and clean up any empty directories.
+    """
+    for root, dirs, files in os.walk(script_dir):
+        for f in files:
+            if f.endswith(".html") and root != script_dir:
+                src = os.path.join(root, f)
+                dst = os.path.join(script_dir, f)
+                if not os.path.exists(dst):
+                    os.rename(src, dst)
+        # Remove empty dirs
+        for d in dirs:
+            dir_to_remove = os.path.join(root, d)
+            try:
+                os.rmdir(dir_to_remove)
+            except OSError:
+                pass  # Ignore if not empty
 
 def check_html_files(domains, script_dir):
     missing = []
@@ -50,11 +73,50 @@ def auto_scan_for_flags(script_dir):
     except Exception as e:
         print(f"❌ ERROR during auto-scan: {e}")
 
+def validate_subdomains(domains, script_dir, expected_flag):
+    """
+    For validation mode: scan all subdomain HTML files for the expected flag.
+    """
+    print("🔍 Validation: scanning all subdomain HTML pages for the expected flag...")
+    for domain in domains:
+        html_file = os.path.join(script_dir, f"{domain}.liber8.local.html")
+        try:
+            with open(html_file, "r", encoding="utf-8") as f:
+                content = f.read()
+                if expected_flag in content:
+                    print(f"✅ Validation success: found flag {expected_flag} in {os.path.basename(html_file)}")
+                    return True
+        except Exception as e:
+            print(f"❌ ERROR reading {html_file}: {e}")
+    print(f"❌ Validation failed: flag {expected_flag} not found in any subdomain HTML file.", file=sys.stderr)
+    return False
+
 def main():
     project_root = find_project_root()
     script_dir = os.path.abspath(os.path.dirname(__file__))
     domains = ["alpha", "beta", "gamma", "delta", "omega"]
 
+    # Flatten nested HTML files if needed
+    flatten_html_files(script_dir, domains)
+
+    if validation_mode:
+        # Load expected flag from validation unlocks
+        unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            with open(unlock_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            expected_flag = unlocks["14_SubdomainSweep"]["real_flag"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        # Validate
+        if validate_subdomains(domains, script_dir, expected_flag):
+            sys.exit(0)
+        else:
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     clear_screen()
     print("🌐 Subdomain Sweep")
     print("=================================\n")
@@ -106,4 +168,5 @@ def main():
             clear_screen()
 
 if __name__ == "__main__":
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()

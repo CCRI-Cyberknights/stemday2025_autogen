@@ -166,9 +166,16 @@ class FlagGenerationManager:
 # === Entry Point ===
 if __name__ == "__main__":
     try:
+        # Prompt for dry-run unless CLI flag specified
         parser = argparse.ArgumentParser()
         parser.add_argument("--dry-run", action="store_true", help="Generate flags without modifying challenges.json")
         args = parser.parse_args()
+
+        # If no CLI flag, prompt user interactively
+        if not args.dry_run:
+            choice = input("⚠️ Do you want to run in dry-run mode? (y/N): ").strip().lower()
+            if choice == "y":
+                args.dry_run = True
 
         manager = FlagGenerationManager(dry_run=args.dry_run)
         manager.generate_flags()

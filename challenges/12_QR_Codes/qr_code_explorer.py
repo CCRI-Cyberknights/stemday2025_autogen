@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+import json
 import subprocess
 import time
 
@@ -16,15 +17,20 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
 
 def open_image(file_path, duration=20):
     try:
-        # Open in system image viewer
-        viewer_process = subprocess.Popen(["xdg-open", file_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        viewer_process = subprocess.Popen(
+            ["xdg-open", file_path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
         time.sleep(duration)
         viewer_process.terminate()
         print("⏳ Time’s up! Closing the viewer...")
@@ -44,11 +50,42 @@ def decode_qr(file_path):
         print("❌ ERROR: zbarimg is not installed.")
         sys.exit(1)
 
+def validate_all_qrs(qr_codes, expected_flag):
+    """
+    For validation mode: scan all QR codes for the expected flag.
+    """
+    print("🔍 Validation: scanning all QR codes for the expected flag...")
+    for qr in qr_codes:
+        decoded = decode_qr(qr)
+        if expected_flag in decoded:
+            print(f"✅ Validation success: found flag {expected_flag} in {os.path.basename(qr)}")
+            return True
+    print(f"❌ Validation failed: flag {expected_flag} not found in any QR code.", file=sys.stderr)
+    return False
+
 def main():
     project_root = find_project_root()
     script_dir = os.path.abspath(os.path.dirname(__file__))
     qr_codes = [os.path.join(script_dir, f"qr_0{i}.png") for i in range(1, 6)]
 
+    if validation_mode:
+        # Load expected flag from validation unlocks
+        unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            with open(unlock_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            expected_flag = unlocks["12_QRCodes"]["real_flag"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        # Run validation
+        if validate_all_qrs(qr_codes, expected_flag):
+            sys.exit(0)
+        else:
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     clear_screen()
     print("📦 QR Code Explorer")
     print("==========================\n")
@@ -120,4 +157,5 @@ def main():
             clear_screen()
 
 if __name__ == "__main__":
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()

@@ -15,10 +15,26 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
+
+def run_steghide(password, target_image, decoded_file):
+    """Attempt to extract hidden data using steghide."""
+    try:
+        result = subprocess.run(
+            ["steghide", "extract", "-sf", target_image, "-xf", decoded_file, "-p", password, "-f"],
+            input=b"\n",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        return result.returncode == 0 and os.path.exists(decoded_file) and os.path.getsize(decoded_file) > 0
+    except FileNotFoundError:
+        print("❌ ERROR: steghide is not installed or not in PATH.", file=sys.stderr)
+        sys.exit(1)
 
 def main():
     project_root = find_project_root()
@@ -26,6 +42,26 @@ def main():
     target_image = os.path.join(script_dir, "squirrel.jpg")
     decoded_file = os.path.join(script_dir, "decoded_message.txt")
 
+    if validation_mode:
+        # 🛠 Validation: use the known correct password
+        password_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            import json
+            with open(password_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            correct_password = unlocks["01_Stego"]["last_password"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation password: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        if run_steghide(correct_password, target_image, decoded_file):
+            print(f"✅ Validation success: extracted flag with password '{correct_password}'")
+            sys.exit(0)
+        else:
+            print(f"❌ Validation failed: could not extract flag with password '{correct_password}'", file=sys.stderr)
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     clear_screen()
     print("🕵️ Stego Decode Helper")
     print("==========================\n")
@@ -63,19 +99,7 @@ def main():
         print("📦 Scanning squirrel.jpg for hidden data...\n")
         print(f"💻 Running: steghide extract -sf \"{target_image}\" -xf \"{decoded_file}\" -p \"{pw}\"\n")
 
-        # Attempt extraction
-        try:
-            result = subprocess.run(
-                ["steghide", "extract", "-sf", target_image, "-xf", decoded_file, "-p", pw, "-f"],
-                input=b"\n",
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
-        except FileNotFoundError:
-            print("❌ ERROR: steghide is not installed or not in PATH.")
-            sys.exit(1)
-
-        if os.path.exists(decoded_file) and os.path.getsize(decoded_file) > 0:
+        if run_steghide(pw, target_image, decoded_file):
             print("🎉 ✅ SUCCESS! Hidden message recovered:")
             print("----------------------------")
             with open(decoded_file, "r") as f:
@@ -92,4 +116,6 @@ def main():
                 os.remove(decoded_file)
 
 if __name__ == "__main__":
+    # Detect validation mode by environment variable
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()

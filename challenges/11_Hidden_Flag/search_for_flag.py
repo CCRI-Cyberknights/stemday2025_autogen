@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os
 import sys
+import json
+import re
 import time
 
 # === Interactive Hidden File Explorer ===
@@ -15,16 +17,36 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
 
 def list_directory(path):
     try:
         return sorted(os.listdir(path))
     except FileNotFoundError:
         return []
+
+def validate_hidden_flag(root_dir, expected_flag):
+    """
+    For validation mode: search recursively for the expected flag.
+    """
+    for dirpath, dirnames, filenames in os.walk(root_dir):
+        for filename in filenames:
+            file_path = os.path.join(dirpath, filename)
+            try:
+                with open(file_path, "r") as f:
+                    content = f.read()
+                    if expected_flag in content:
+                        print(f"✅ Validation success: found flag {expected_flag} in {file_path}")
+                        return True
+            except Exception:
+                continue
+    print(f"❌ Validation failed: flag {expected_flag} not found.", file=sys.stderr)
+    return False
 
 def main():
     project_root = find_project_root()
@@ -33,6 +55,24 @@ def main():
     results_file = os.path.join(script_dir, "results.txt")
     current_dir = root_dir
 
+    if validation_mode:
+        # Load expected flag from validation unlocks
+        unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            with open(unlock_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            expected_flag = unlocks["11_HiddenFlag"]["real_flag"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        # Run validation search
+        if validate_hidden_flag(root_dir, expected_flag):
+            sys.exit(0)
+        else:
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     clear_screen()
     print("🗂️  Interactive Hidden File Explorer")
     print("======================================\n")
@@ -157,4 +197,5 @@ def main():
             pause()
 
 if __name__ == "__main__":
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()

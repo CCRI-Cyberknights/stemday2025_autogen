@@ -3,10 +3,12 @@ import os
 import sys
 import subprocess
 import time
+import json
 
 # === Hashcat ChainCrack Demo ===
 
 def find_project_root():
+    """Locate the project root containing .ccri_ctf_root marker."""
     dir_path = os.path.abspath(os.path.dirname(__file__))
     while dir_path != "/":
         if os.path.exists(os.path.join(dir_path, ".ccri_ctf_root")):
@@ -16,20 +18,187 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
 
 def print_progress_bar(length=30, delay=0.02):
+    """Simple progress bar animation (skipped in validation)."""
+    if validation_mode:
+        return
     for _ in range(length):
         print("█", end="", flush=True)
         time.sleep(delay)
     print()
 
-def main():
-    project_root = find_project_root()
-    script_dir = os.path.abspath(os.path.dirname(__file__))
+def run_hashcat(hashes_file, wordlist_file, potfile):
+    """Run hashcat to crack hashes."""
+    subprocess.run(
+        ["hashcat", "-m", "0", "-a", "0", hashes_file, wordlist_file,
+         "--potfile-path", potfile, "--force"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+
+def decode_base64_file(input_path, output_path):
+    """Decode a base64 file and save output."""
+    decoded_dir = os.path.dirname(output_path)
+    os.makedirs(decoded_dir, exist_ok=True)  # Ensure output dir exists
+    try:
+        result = subprocess.run(
+            ["base64", "--decode", input_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+        with open(output_path, "w") as f_out:
+            f_out.write(result.stdout)
+        return result.stdout.strip()
+    except subprocess.CalledProcessError:
+        return None
+
+def flatten_extracted_dir(extracted_dir):
+    """
+    Move files from subdirectories up to extracted_dir,
+    then remove empty subdirectories.
+    """
+    for root, dirs, files in os.walk(extracted_dir):
+        for f in files:
+            src = os.path.join(root, f)
+            dst = os.path.join(extracted_dir, f)
+            if src != dst:
+                try:
+                    os.rename(src, dst)
+                except FileExistsError:
+                    os.remove(dst)
+                    os.rename(src, dst)
+        for d in dirs:
+            dir_to_remove = os.path.join(root, d)
+            if os.path.isdir(dir_to_remove):
+                try:
+                    os.rmdir(dir_to_remove)
+                except OSError:
+                    pass
+
+def reassemble_flags(decoded_dir, assembled_file):
+    """Reassemble decoded segments into candidate flags."""
+    decoded_files = sorted(
+        [f for f in os.listdir(decoded_dir) if f.endswith(".txt")],
+        key=lambda x: int("".join(filter(str.isdigit, x)))  # Extract digits from filename
+    )
+    assembled_lines = []
+    try:
+        with open(assembled_file, "w") as out_f:
+            for i in range(5):  # Assume 5 candidate flags
+                parts = []
+                for decoded_file in decoded_files:
+                    path = os.path.join(decoded_dir, decoded_file)
+                    lines = open(path).readlines()
+                    if i < len(lines):
+                        parts.append(lines[i].strip())
+                    else:
+                        parts.append("MISSING")  # Graceful fallback
+                flag = "-".join(parts)
+                assembled_lines.append(flag)
+                out_f.write(flag + "\n")
+        return assembled_lines
+    except Exception as e:
+        print(f"❌ ERROR during flag reassembly: {e}", file=sys.stderr)
+        return []
+
+def extract_zip_files(hashes_file, potfile, segments_dir, extracted_dir, decoded_dir):
+    """Pair hashes and passwords, then extract ZIP files."""
+    os.makedirs(decoded_dir, exist_ok=True)  # Ensure decoded_dir exists
+
+    # Load hashes.txt (original order)
+    with open(hashes_file, "r") as f:
+        hash_list = [line.strip() for line in f if line.strip()]
+
+    # Load cracked hashes
+    cracked = {}
+    with open(potfile, "r") as pf:
+        for line in pf:
+            if ':' in line:
+                hash_val, password = line.strip().split(':', 1)
+                cracked[hash_val] = password
+
+    # Map ZIP files to cracked passwords
+    for idx, hash_val in enumerate(hash_list, start=1):
+        password = cracked.get(hash_val)
+        zipfile = os.path.join(segments_dir, f"part{idx}.zip")
+        if password is None:
+            print(f"❌ No cracked password found for hash {hash_val}", file=sys.stderr)
+            continue
+
+        print(f"\n🔑 Unlocking {zipfile} with password: {password}")
+        result = subprocess.run(
+            ["unzip", "-P", password, zipfile, "-d", extracted_dir],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode != 0:
+            print(f"❌ Failed to unzip {zipfile} with password '{password}'", file=sys.stderr)
+            print(f"📄 unzip error: {result.stderr.strip()}", file=sys.stderr)
+            continue
+        else:
+            print(f"✅ Unzipped {zipfile} successfully.")
+
+        flatten_extracted_dir(extracted_dir)
+        for f in os.listdir(extracted_dir):
+            if f.startswith("encoded_"):
+                seg_path = os.path.join(extracted_dir, f)
+                decoded_path = os.path.join(decoded_dir, f"decoded_{f}")
+                print(f"📦 Decoding {f}...")
+                decode_base64_file(seg_path, decoded_path)
+
+def validate_challenge(script_dir, project_root):
+    """Run validation using expected flag and hash-password-ZIP mapping."""
+    hashes_file = os.path.join(script_dir, "hashes.txt")
+    wordlist_file = os.path.join(script_dir, "wordlist.txt")
+    potfile = os.path.join(script_dir, "hashcat.potfile")
+    segments_dir = os.path.join(script_dir, "segments")
+    extracted_dir = os.path.join(script_dir, "extracted")
+    decoded_dir = os.path.join(script_dir, "decoded_segments")
+    assembled_file = os.path.join(script_dir, "assembled_flag.txt")
+    unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+
+    # Load expected flag
+    try:
+        with open(unlock_file, "r", encoding="utf-8") as f:
+            unlocks = json.load(f)
+        expected_flag = unlocks["06_Hashcat"]["real_flag"]
+    except Exception as e:
+        print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    print("\n🛠️ [Validation] Running Hashcat...")
+    run_hashcat(hashes_file, wordlist_file, potfile)
+
+    print("\n[✅] Cracked hashes:")
+    with open(potfile, "r") as pf:
+        for line in pf:
+            if ':' in line:
+                hash_val, password = line.strip().split(':', 1)
+                print(f"🔓 {hash_val} : {password}")
+
+    extract_zip_files(hashes_file, potfile, segments_dir, extracted_dir, decoded_dir)
+
+    print("\n🧩 Assembling candidate flags...")
+    candidate_flags = reassemble_flags(decoded_dir, assembled_file)
+
+    if expected_flag in candidate_flags:
+        print(f"✅ Validation success: found flag {expected_flag}")
+        sys.exit(0)
+    else:
+        print(f"❌ Validation failed: flag {expected_flag} not found.", file=sys.stderr)
+        sys.exit(1)
+
+def student_interactive(script_dir):
+    """Run interactive student challenge."""
     hashes_file = os.path.join(script_dir, "hashes.txt")
     wordlist_file = os.path.join(script_dir, "wordlist.txt")
     potfile = os.path.join(script_dir, "hashcat.potfile")
@@ -38,137 +207,69 @@ def main():
     decoded_dir = os.path.join(script_dir, "decoded_segments")
     assembled_file = os.path.join(script_dir, "assembled_flag.txt")
 
-    clear_screen()
-    print("🔓 Hashcat ChainCrack Demo")
-    print("===============================\n")
-    print("📂 Hashes to crack:     hashes.txt")
-    print("📖 Wordlist to use:     wordlist.txt")
-    print("📦 Encrypted segments:  segments/part*.zip\n")
-    print("🎯 Goal: Crack all 3 hashes, unlock 3 ZIP segment files, decode them, and reassemble the flag!\n")
-    print("💡 What’s happening here?")
-    print("   ➡️ Hashcat will match words from the wordlist to hash values (like solving digital locks).")
-    print("   ➡️ Each cracked hash unlocks a ZIP segment file.")
-    print("   ➡️ Segments contain base64-encoded data we'll need to decode and stitch together.\n")
-    pause()
+    try:
+        clear_screen()
+        print("🔓 Hashcat ChainCrack Demo")
+        print("===============================\n")
+        print("📂 Hashes to crack:     hashes.txt")
+        print("📖 Wordlist to use:     wordlist.txt")
+        print("📦 Encrypted segments:  segments/part*.zip\n")
+        print("🎯 Goal: Crack hashes, unlock ZIPs, decode Base64, assemble flag.\n")
+        pause()
 
-    # Pre-flight checks
-    if not os.path.isfile(hashes_file) or not os.path.isfile(wordlist_file):
-        print("❌ ERROR: Required files hashes.txt or wordlist.txt are missing.")
-        pause("Press ENTER to close this terminal...")
-        sys.exit(1)
+        if not os.path.isfile(hashes_file) or not os.path.isfile(wordlist_file):
+            print("❌ ERROR: Required files hashes.txt or wordlist.txt are missing.")
+            pause("Press ENTER to close...")
+            return
 
-    if not os.path.isdir(segments_dir):
-        print("❌ ERROR: Segments folder is missing.")
-        pause("Press ENTER to close this terminal...")
-        sys.exit(1)
+        if not os.path.isdir(segments_dir):
+            print("❌ ERROR: Segments folder missing.")
+            pause("Press ENTER to close...")
+            return
 
-    # Clean up any old results
-    print("\n[🧹] Clearing previous Hashcat outputs and decoded data...")
-    for path in [potfile, assembled_file]:
-        if os.path.exists(path):
-            os.remove(path)
-    for directory in [extracted_dir, decoded_dir]:
-        if os.path.exists(directory):
-            subprocess.run(["rm", "-rf", directory])
-    os.makedirs(extracted_dir, exist_ok=True)
-    os.makedirs(decoded_dir, exist_ok=True)
+        print("\n[🧹] Cleaning previous results...")
+        for path in [potfile, assembled_file]:
+            if os.path.exists(path):
+                os.remove(path)
+        for directory in [extracted_dir, decoded_dir]:
+            if os.path.exists(directory):
+                subprocess.run(["rm", "-rf", directory])
+        os.makedirs(extracted_dir, exist_ok=True)
+        os.makedirs(decoded_dir, exist_ok=True)
 
-    # Explain hashcat
-    print("\n🛠️ Behind the Scenes: Hashcat Command")
-    print("-------------------------------------------")
-    print("hashcat -m 0 -a 0 hashes.txt wordlist.txt")
-    print("   -m 0 = MD5 hash mode")
-    print("   -a 0 = dictionary attack (uses wordlist.txt)")
-    print("   --potfile-path = where cracked hashes are stored\n")
-    pause("Press ENTER to launch Hashcat...")
+        print("\n🛠️ Running Hashcat...")
+        pause("Press ENTER to continue...")
+        run_hashcat(hashes_file, wordlist_file, potfile)
 
-    # Run hashcat
-    subprocess.run(
-        ["hashcat", "-m", "0", "-a", "0", hashes_file, wordlist_file, "--potfile-path", potfile, "--force"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
-    )
+        print("\n[✅] Cracked hashes:")
+        with open(potfile, "r") as pf:
+            for line in pf:
+                if ':' in line:
+                    hash_val, password = line.strip().split(':', 1)
+                    print(f"🔓 {hash_val} : {password}")
 
-    print("\n[✅] Hashcat finished cracking. Cracked hashes:")
-    cracked = {}
-    with open(potfile, "r") as pf:
-        for line in pf:
-            if ':' in line:
-                hash_val, password = line.strip().split(':', 1)
-                cracked[hash_val] = password
-                print(f"🔓 {hash_val} : {password}")
+        pause("\nPress ENTER to extract ZIPs and decode segments...")
+        extract_zip_files(hashes_file, potfile, segments_dir, extracted_dir, decoded_dir)
 
-    pause("\nPress ENTER to extract and decode encrypted ZIP segments...")
+        print("\n🧩 Assembling candidate flags...")
+        print_progress_bar()
+        candidate_flags = reassemble_flags(decoded_dir, assembled_file)
+        print("\n🎯 Candidate Flags:")
+        for flag in candidate_flags:
+            print(f"- {flag}")
 
-    # Mapping hashes to zip files
-    hash_to_file = {
-        "4e14b4bed16c945384faad2365913886": "part1.zip",  # brightmail
-        "ceabb18ea6bbce06ce83664cf46d1fa8": "part2.zip",  # letacla
-        "08f5b04545cbf7eaa238621b9ab84734": "part3.zip",  # Password12
-    }
-
-    # Extract segments and decode
-    for hash_val, password in cracked.items():
-        zipfile = hash_to_file.get(hash_val)
-        if not zipfile:
-            print(f"❌ No ZIP mapping found for hash: {hash_val}")
-            continue
-
-        print(f"\n🔑 Unlocking {zipfile} with password: {password}")
-        subprocess.run(
-            ["unzip", "-P", password, os.path.join(segments_dir, zipfile), "-d", extracted_dir],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-
-        # Find and decode base64 segment
-        segment_files = [f for f in os.listdir(extracted_dir) if f.lower().startswith("encoded_segment")]
-        for segment_file in segment_files:
-            seg_path = os.path.join(extracted_dir, segment_file)
-            decoded_path = os.path.join(decoded_dir, f"decoded_{os.path.splitext(segment_file)[0]}.txt")
-
-            print(f"✅ Extracted encoded segment: {segment_file}")
-            print("ℹ️  This file uses Base64 encoding. Let's decode it to reveal the real content.")
-            time.sleep(0.5)
-            print(f"\n🔽 Decoding Base64 with: base64 --decode \"{seg_path}\"")
-            time.sleep(0.5)
-
-            try:
-                result = subprocess.run(
-                    ["base64", "--decode", seg_path],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    check=True
-                )
-                with open(decoded_path, "w") as df:
-                    df.write(result.stdout)
-                print(f"📄 Decoded → {decoded_path}")
-                print("-----------------------------")
-                print(result.stdout.strip())
-                print("-----------------------------")
-            except subprocess.CalledProcessError:
-                print(f"⚠️  Decoding failed for: {seg_path}")
-
-    # Assemble flag from decoded segments
-    print("\n🧩 Reassembling final flag...")
-    time.sleep(1)
-    decoded_files = sorted([f for f in os.listdir(decoded_dir) if f.endswith(".txt")])
-
-    if len(decoded_files) == 3:
-        with open(assembled_file, "w") as out_f:
-            for i in range(5):
-                part1 = open(os.path.join(decoded_dir, decoded_files[0])).readlines()[i].strip()
-                part2 = open(os.path.join(decoded_dir, decoded_files[1])).readlines()[i].strip()
-                part3 = open(os.path.join(decoded_dir, decoded_files[2])).readlines()[i].strip()
-                flag = f"{part1}-{part2}-{part3}"
-                print(f"- {flag}")
-                out_f.write(flag + "\n")
-        print(f"\n✅ All candidate flags saved to: {assembled_file}")
-    else:
-        print("❌ One or more decoded segments are missing. Cannot assemble final flags.")
-
-    pause("\n🔎 Review the candidate flags above. Only ONE matches the CCRI format: CCRI-AAAA-1111\nPress ENTER to close this terminal...")
+        print(f"\n✅ Flags saved to: {assembled_file}")
+        pause("\n🎉 Press ENTER to exit...")
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}", file=sys.stderr)
+        pause("\n💥 Press ENTER to exit after error...")
 
 if __name__ == "__main__":
-    main()
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
+    script_dir = os.path.abspath(os.path.dirname(__file__))
+    project_root = find_project_root()
+
+    if validation_mode:
+        validate_challenge(script_dir, project_root)
+    else:
+        student_interactive(script_dir)

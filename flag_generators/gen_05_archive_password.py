@@ -34,7 +34,7 @@ class ArchivePasswordFlagGenerator:
 
     def safe_cleanup(self, challenge_folder: Path):
         """
-        Remove only generated assets from the challenge folder.
+        Remove previously generated assets from the challenge folder.
         """
         for filename in ["wordlist.txt", "message_encoded.txt", "secret.zip"]:
             target_file = challenge_folder / filename
@@ -90,22 +90,25 @@ class ArchivePasswordFlagGenerator:
             encoded_file = challenge_folder / "message_encoded.txt"
             encoded_file.write_text(message_encoded)
 
-            # Create password-protected ZIP
+            # Create password-protected ZIP (flat)
             zip_file = challenge_folder / "secret.zip"
             result = subprocess.run(
-                ["zip", "-P", correct_password, str(zip_file), str(encoded_file)],
-                capture_output=True, text=True
+                ["zip", "-j", "-P", correct_password, str(zip_file), str(encoded_file.name)],
+                cwd=challenge_folder,
+                capture_output=True,
+                text=True
             )
             if result.returncode != 0:
                 raise RuntimeError(f"❌ Zip failed: {result.stderr.strip()}")
 
-            # Clean up temp file
+            # Clean up plaintext file
             encoded_file.unlink()
             print(f"🗝️ {wordlist_file.relative_to(self.project_root)} and 🔒 {zip_file.relative_to(self.project_root)} created with correct password: {correct_password}")
 
             # Record unlock metadata
             self.metadata = {
                 "real_flag": real_flag,
+                "last_zip_password": correct_password,
                 "challenge_file": str(zip_file.relative_to(self.project_root)),
                 "wordlist_file": str(wordlist_file.relative_to(self.project_root)),
                 "zip_password": correct_password,

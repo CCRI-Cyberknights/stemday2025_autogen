@@ -15,10 +15,29 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
+
+def decode_base64(input_file, output_file):
+    """Decode the Base64 file and return the decoded string."""
+    try:
+        result = subprocess.run(
+            ["base64", "--decode", input_file],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        decoded = result.stdout.strip()
+        if decoded:
+            with open(output_file, "w") as f:
+                f.write(decoded + "\n")
+        return decoded
+    except subprocess.CalledProcessError:
+        return None
 
 def main():
     project_root = find_project_root()
@@ -26,6 +45,27 @@ def main():
     input_file = os.path.join(script_dir, "encoded.txt")
     output_file = os.path.join(script_dir, "decoded_output.txt")
 
+    if validation_mode:
+        # 🛠 Validation mode: check decoded content matches expected flag
+        unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            import json
+            with open(unlock_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            expected_flag = unlocks["02_Base64"]["real_flag"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        decoded = decode_base64(input_file, output_file)
+        if decoded and expected_flag in decoded:
+            print(f"✅ Validation success: found flag {expected_flag}")
+            sys.exit(0)
+        else:
+            print(f"❌ Validation failed: flag {expected_flag} not found in decoded content", file=sys.stderr)
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     clear_screen()
     print("📡 Intercepted Transmission Decoder")
     print("=====================================\n")
@@ -54,22 +94,11 @@ def main():
     print("✅ Base64 structure confirmed!\n")
     print("⏳ Decoding intercepted transmission...\n")
 
-    try:
-        result = subprocess.run(
-            ["base64", "--decode", input_file],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        decoded = result.stdout.strip()
-    except subprocess.CalledProcessError:
-        print("\n❌ Decoding failed! This may not be valid Base64, or the file is corrupted.")
-        print("💡 Tip: Ensure 'encoded.txt' exists and contains proper Base64 text.\n")
-        pause("Press ENTER to close this terminal...")
-        sys.exit(1)
+    decoded = decode_base64(input_file, output_file)
 
     if not decoded:
-        print("\n❌ Decoding failed! No content was extracted.")
+        print("\n❌ Decoding failed! This may not be valid Base64, or the file is corrupted.")
+        print("💡 Tip: Ensure 'encoded.txt' exists and contains proper Base64 text.\n")
         pause("Press ENTER to close this terminal...")
         sys.exit(1)
 
@@ -78,13 +107,11 @@ def main():
     print("-----------------------------")
     print(decoded)
     print("-----------------------------")
-    with open(output_file, "w") as f:
-        f.write(decoded + "\n")
-
     print(f"\n📁 Decoded output saved as: {output_file}")
     print("🔎 Search carefully for the CCRI flag format: CCRI-AAAA-1111")
     print("🧠 This is your flag. Copy it into the scoreboard!\n")
     pause("Press ENTER to close this terminal...")
 
 if __name__ == "__main__":
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()

@@ -3,6 +3,7 @@ import os
 import sys
 import subprocess
 import time
+import json
 
 # === Fix the Flag! (Python Edition) ===
 
@@ -16,10 +17,32 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('cls' if os.name == 'nt' else 'clear')
+    if not validation_mode:
+        os.system('cls' if os.name == 'nt' else 'clear')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
+
+def flatten_broken_script_dir(script_dir, script_name):
+    """
+    Move broken_flag.py to script_dir if it’s inside a nested directory
+    and remove empty folders.
+    """
+    for root, dirs, files in os.walk(script_dir):
+        for f in files:
+            if f == script_name and root != script_dir:
+                src = os.path.join(root, f)
+                dst = os.path.join(script_dir, f)
+                if not os.path.exists(dst):
+                    os.rename(src, dst)
+        # Remove empty dirs
+        for d in dirs:
+            dir_to_remove = os.path.join(root, d)
+            try:
+                os.rmdir(dir_to_remove)
+            except OSError:
+                pass  # Ignore if not empty
 
 def run_python_script(script_path):
     try:
@@ -35,6 +58,7 @@ def run_python_script(script_path):
         sys.exit(1)
 
 def replace_operator(script_path, new_operator):
+    """Replace the math operator in broken_flag.py"""
     try:
         with open(script_path, "r") as f:
             lines = f.readlines()
@@ -54,29 +78,44 @@ def main():
     broken_script = os.path.join(script_dir, "broken_flag.py")
     flag_output_file = os.path.join(script_dir, "flag.txt")
 
+    # Flatten directory in case broken_flag.py is nested
+    flatten_broken_script_dir(script_dir, "broken_flag.py")
+
+    # === Validation Mode: silent flag check ===
+    if validation_mode:
+        unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            with open(unlock_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            expected_flag = unlocks["09_FixScript"]["real_flag"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        # Patch script to use "+" operator
+        replace_operator(broken_script, "+")
+        fixed_output = run_python_script(broken_script)
+        if expected_flag in fixed_output:
+            print(f"✅ Validation success: found flag {expected_flag}")
+            sys.exit(0)
+        else:
+            print(f"❌ Validation failed: flag {expected_flag} not found.", file=sys.stderr)
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     clear_screen()
     print("🧪 Challenge #09 – Fix the Flag! (Python Edition)")
     print("===============================================\n")
-    print("📄 You found a broken Python script! Here’s what it looks like:\n")
-    print("""#!/usr/bin/env python3
-
-part1 = 900
-part2 = 198
-
-# MATH ERROR!
-code = part1 - part2  # <- wrong math
-
-print(f"Your flag is: CCRI-SCRP-{code}")\n""")
-    print("===============================================\n")
+    print(f"📄 Broken script located: {broken_script}\n")
+    print("⚠️ This script calculates part of the flag incorrectly.")
+    print("👉 Open it in a text editor (nano, vim, or mousepad) and examine the math.")
+    print("💡 Your goal: fix the math operation and re-run the script.\n")
+    pause("Press ENTER to attempt running the broken script...")
 
     if not os.path.isfile(broken_script):
         print("❌ ERROR: missing required file 'broken_flag.py'.")
         pause("Press ENTER to close this terminal...")
         sys.exit(1)
-
-    print("🧐 The original script tries to calculate a flag code by subtracting two numbers.")
-    print("⚠️ But the result isn’t in the correct 4-digit format!\n")
-    pause("Press ENTER to run the script and see what happens...")
 
     print("\n💻 Running: python broken_flag.py")
     print("----------------------------------------------")
@@ -84,44 +123,26 @@ print(f"Your flag is: CCRI-SCRP-{code}")\n""")
     print(output)
     print("----------------------------------------------\n")
     time.sleep(1)
-    print("😮 Uh-oh! That’s not a valid 4-digit flag code. The math must be wrong.\n")
-    time.sleep(0.5)
 
-    # Interactive repair loop
-    while True:
-        print("🛠️  Your task: Fix the broken line in the script.\n")
-        print("    code = part1 - part2\n")
-        print("👉 Which operator should we use instead of '-' to calculate the flag?")
-        print("   Choices: +   -   *   /\n")
-        op = input("Enter your choice: ").strip()
+    print("😮 If that output doesn't look right, edit the script and fix the math.")
+    pause("Press ENTER once you've fixed it to test again...")
 
-        if op == "+":
-            print("\n✅ Correct! Adding the two parts together gives us the proper flag code.")
-            time.sleep(0.5)
-            print("🔧 Updating the script with '+'...\n")
-            replace_operator(broken_script, "+")
-            print("🎉 Re-running the fixed script...")
-            fixed_output = run_python_script(broken_script)
-            flag_line = next((line for line in fixed_output.splitlines() if "CCRI-SCRP" in line), None)
-            print("----------------------------------------------")
-            print(flag_line)
-            print("----------------------------------------------")
-            print(f"📄 Flag saved to: {flag_output_file}\n")
-            with open(flag_output_file, "w") as f:
-                f.write(flag_line + "\n")
-            pause("🎯 Copy the flag and enter it in the scoreboard when ready. Press ENTER to finish...")
-            break
-        elif op == "-":
-            print(f"❌ That’s still the original mistake. Subtracting gives: CCRI-SCRP-{900 - 198}\n")
-        elif op == "*":
-            print(f"❌ Nope! Multiplying gives: CCRI-SCRP-{900 * 198} (way too big!).\n")
-        elif op == "/":
-            print(f"❌ Not quite! Dividing gives: CCRI-SCRP-{900 // 198} (too small).\n")
-        else:
-            print("❌ Invalid choice. Use one of: +  -  *  /\n")
-            continue
+    print("\n🎉 Re-running fixed script...")
+    fixed_output = run_python_script(broken_script)
+    flag_line = next((line for line in fixed_output.splitlines() if "CCRI-SCRP" in line), None)
 
-        print("🧠 That result isn’t correct. Try another operator!\n")
+    if flag_line:
+        print("----------------------------------------------")
+        print(flag_line)
+        print("----------------------------------------------")
+        with open(flag_output_file, "w") as f:
+            f.write(flag_line + "\n")
+        print(f"📄 Flag saved to: {flag_output_file}\n")
+        pause("🎯 Copy the flag and enter it in the scoreboard when ready. Press ENTER to finish...")
+    else:
+        print("⚠️ Still no valid flag. Double-check your math and try again.")
+        pause("Press ENTER to close this terminal...")
 
 if __name__ == "__main__":
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()

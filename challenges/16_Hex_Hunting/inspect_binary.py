@@ -2,9 +2,10 @@
 import os
 import sys
 import subprocess
+import json
 import time
 
-# === Hex Flag Hunter ===
+# === Hex Flag Hunter Helper ===
 
 def find_project_root():
     dir_path = os.path.abspath(os.path.dirname(__file__))
@@ -16,22 +17,25 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
 
 def scanning_animation():
-    print("\n🔎 Scanning binary for flag-like patterns", end="", flush=True)
-    for _ in range(5):
-        time.sleep(0.3)
-        print(".", end="", flush=True)
-    print()
+    if not validation_mode:
+        print("\n🔎 Scanning binary for flag-like patterns", end="", flush=True)
+        for _ in range(5):
+            time.sleep(0.3)
+            print(".", end="", flush=True)
+        print()
 
-def search_flags(binary_file):
+def search_flags(binary_file, pattern=r"CCRI-[A-Z]{4}-[0-9]{4}"):
     try:
         grep_output = subprocess.run(
-            ["grep", "-aboE", r"([A-Z]{4}-[A-Z]{4}-[0-9]{4}|[A-Z]{4}-[0-9]{4}-[A-Z]{4})", binary_file],
+            ["grep", "-aboE", pattern, binary_file],
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True
@@ -41,11 +45,21 @@ def search_flags(binary_file):
         flags = []
         for line in grep_output.stdout.strip().splitlines():
             _, _, flag = line.partition(":")
-            flags.append(flag)
+            flags.append(flag.strip())
         return flags
     except Exception as e:
         print(f"❌ Error while scanning binary: {e}")
         sys.exit(1)
+
+def validate_flag_in_binary(binary_file, expected_flag):
+    print("🔍 Validation: scanning hex_flag.bin for expected flag...")
+    flags = search_flags(binary_file)
+    if expected_flag in flags:
+        print(f"✅ Validation success: found flag {expected_flag}")
+        return True
+    else:
+        print(f"❌ Validation failed: flag {expected_flag} not found", file=sys.stderr)
+        return False
 
 def show_hex_context(binary_file, offset, length=64):
     start = max(offset - 16, 0)
@@ -72,8 +86,27 @@ def show_hex_context(binary_file, offset, length=64):
 def main():
     project_root = find_project_root()
     script_dir = os.path.abspath(os.path.dirname(__file__))
-    os.chdir(script_dir)
+    binary_file = os.path.join(script_dir, "hex_flag.bin")
+    notes_file = os.path.join(script_dir, "notes.txt")
 
+    if validation_mode:
+        # Load expected flag from validation unlocks
+        unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            with open(unlock_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            expected_flag = unlocks["16_Hex_Hunting"]["real_flag"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        # Validate
+        if validate_flag_in_binary(binary_file, expected_flag):
+            sys.exit(0)
+        else:
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     clear_screen()
     print("🔍 Hex Flag Hunter")
     print("============================\n")
@@ -83,11 +116,7 @@ def main():
     print("🔧 Behind the scenes:")
     print("   We'll scan the binary for any strings that *look like* flags using 'grep'.")
     print("   Then we'll preview surrounding bytes in hex for context with 'xxd' and 'dd'.\n")
-
     pause()
-
-    binary_file = os.path.join(script_dir, "hex_flag.bin")
-    notes_file = os.path.join(script_dir, "notes.txt")
 
     if not os.path.isfile(binary_file):
         print(f"❌ ERROR: {os.path.basename(binary_file)} not found in this folder!")
@@ -160,4 +189,5 @@ def main():
     pause()
 
 if __name__ == "__main__":
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()

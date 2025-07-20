@@ -2,9 +2,10 @@
 import os
 import sys
 import subprocess
+import json
 import time
 
-# === Nmap Scan Puzzle ===
+# === Nmap Scan Puzzle Helper ===
 
 def find_project_root():
     dir_path = os.path.abspath(os.path.dirname(__file__))
@@ -16,13 +17,16 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
 
 def run_nmap_scan():
-    print("\n📡 Running: nmap -sV --version-light -p8000-8100 localhost\n")
+    if not validation_mode:
+        print("\n📡 Running: nmap -sV --version-light -p8000-8100 localhost\n")
     try:
         result = subprocess.run(
             ["nmap", "-sV", "--version-light", "-p8000-8100", "localhost"],
@@ -46,22 +50,6 @@ def extract_open_ports(scan_output):
                 continue
     return ports
 
-def fetch_service_name(port):
-    try:
-        headers = subprocess.run(
-            ["curl", "-s", "-o", "/dev/null", "-D", "-", f"http://localhost:{port}"],
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL
-        )
-        for line in headers.stdout.splitlines():
-            if "X-Service-Name" in line:
-                return line.split(":", 1)[1].strip()
-        return "unknown"
-    except FileNotFoundError:
-        print("❌ ERROR: curl is not installed.")
-        sys.exit(1)
-
 def fetch_port_response(port):
     try:
         result = subprocess.run(
@@ -70,16 +58,44 @@ def fetch_port_response(port):
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL
         )
-        return result.stdout
+        return result.stdout.strip()
     except FileNotFoundError:
         print("❌ ERROR: curl is not installed.")
         sys.exit(1)
+
+def validate_flag_in_services(expected_flag):
+    scan_output = run_nmap_scan()
+    open_ports = extract_open_ports(scan_output)
+    for port in open_ports:
+        response = fetch_port_response(port)
+        if expected_flag in response:
+            print(f"✅ Validation success: found flag in port {port}")
+            return True
+    print(f"❌ Validation failed: flag {expected_flag} not found in any port", file=sys.stderr)
+    return False
 
 def main():
     project_root = find_project_root()
     script_dir = os.path.abspath(os.path.dirname(__file__))
     os.chdir(script_dir)
 
+    if validation_mode:
+        # Load expected flag from validation unlocks
+        unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            with open(unlock_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            expected_flag = unlocks["17_Nmap_Scanning"]["real_flag"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        if validate_flag_in_services(expected_flag):
+            sys.exit(0)
+        else:
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     clear_screen()
     print("🛰️ Nmap Scan Puzzle")
     print("--------------------------------------\n")
@@ -88,8 +104,7 @@ def main():
     print("⚠️ Some ports contain random junk responses. Only one flag is correct.\n")
     print("🔧 Under the hood:")
     print("   We'll use 'nmap' to scan the ports and see what services respond.")
-    print("   Then we'll query each open port for its reported service name.\n")
-
+    print("   Then we'll query each open port for its reported response.\n")
     pause()
 
     scan_output = run_nmap_scan()
@@ -108,20 +123,13 @@ def main():
         pause("Press ENTER to exit...")
         sys.exit(1)
 
-    # Build port-to-service map
-    port_services = {}
-    for port in open_ports:
-        service_name = fetch_service_name(port)
-        port_services[port] = service_name
-
     # Interactive exploration
     while True:
         clear_screen()
         print("--------------------------------------")
         print("Open ports detected:")
         for idx, port in enumerate(open_ports, 1):
-            service = port_services[port]
-            print(f"{idx:2d}. {port} ({service})")
+            print(f"{idx:2d}. {port}")
         print(f"{len(open_ports)+1:2d}. Exit\n")
 
         try:
@@ -133,14 +141,12 @@ def main():
 
         if 1 <= choice <= len(open_ports):
             port = open_ports[choice - 1]
-            service = port_services[port]
             print(f"\n🌐 Connecting to http://localhost:{port} ...")
-            print(f"Service: {service}")
             print("--------------------------------------")
             response = fetch_port_response(port)
 
-            if not response.strip():
-                print(f"❌ No response received from port {port}.")
+            if not response:
+                print(f"⚠️ No response received from port {port}.")
             else:
                 print(response)
 
@@ -157,7 +163,7 @@ def main():
                 elif sub_choice == "2":
                     out_file = os.path.join(script_dir, "nmap_flag_response.txt")
                     with open(out_file, "a") as f:
-                        f.write(f"Port: {port}\nService: {service}\nResponse:\n{response}\n")
+                        f.write(f"Port: {port}\nResponse:\n{response}\n")
                         f.write("--------------------------------------\n")
                     print(f"✅ Response saved to {out_file}")
                     time.sleep(1)
@@ -174,4 +180,5 @@ def main():
             time.sleep(1)
 
 if __name__ == "__main__":
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()

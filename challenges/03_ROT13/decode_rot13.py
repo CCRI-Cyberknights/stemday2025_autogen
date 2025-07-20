@@ -2,7 +2,21 @@
 import os
 import sys
 import time
-from flag_generators.gen_03_rot13 import ROT13FlagGenerator  # ✅ Import animation function
+import json
+
+# === Fix: Locate project root and add to sys.path ===
+from pathlib import Path
+
+dir_path = Path(__file__).resolve().parent
+for parent in [dir_path] + list(dir_path.parents):
+    if (parent / ".ccri_ctf_root").exists():
+        sys.path.insert(0, str(parent))
+        break
+else:
+    print("❌ ERROR: Could not find project root (.ccri_ctf_root)", file=sys.stderr)
+    sys.exit(1)
+
+from flag_generators.gen_03_rot13 import ROT13FlagGenerator  # ✅ Animation function
 
 # === ROT13 Decoder Helper ===
 
@@ -16,10 +30,12 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
 
 def main():
     project_root = find_project_root()
@@ -27,6 +43,39 @@ def main():
     cipher_file = os.path.join(script_dir, "cipher.txt")
     output_file = os.path.join(script_dir, "decoded_output.txt")
 
+    # === Validation Mode: Silent flag check ===
+    if validation_mode:
+        unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            with open(unlock_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            expected_flag = unlocks["03_ROT13"]["real_flag"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        # Decode the entire file
+        try:
+            with open(cipher_file, "r") as f:
+                encoded_lines = f.readlines()
+            decoded_message = "".join([ROT13FlagGenerator.rot13(line) for line in encoded_lines])
+        except Exception as e:
+            print(f"❌ ERROR reading or decoding cipher.txt: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        # Save decoded message
+        with open(output_file, "w") as f_out:
+            f_out.write(decoded_message + "\n")
+
+        # Check for flag
+        if expected_flag in decoded_message:
+            print(f"✅ Validation success: found flag {expected_flag}")
+            sys.exit(0)
+        else:
+            print(f"❌ Validation failed: flag {expected_flag} not found in decoded content", file=sys.stderr)
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     clear_screen()
     print("🔐 ROT13 Decoder Helper")
     print("===========================\n")
@@ -77,4 +126,5 @@ def main():
     pause("Press ENTER to close this terminal...")
 
 if __name__ == "__main__":
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()

@@ -2,9 +2,10 @@
 import os
 import sys
 import subprocess
+import json
 import time
 
-# === Process Inspection ===
+# === Process Inspection Helper ===
 
 def find_project_root():
     dir_path = os.path.abspath(os.path.dirname(__file__))
@@ -16,13 +17,15 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
 
 def relaunch_in_bigger_terminal(script_path):
-    if os.environ.get("BIGGER_TERMINAL") == "1":
+    if validation_mode or os.environ.get("BIGGER_TERMINAL") == "1":
         return
     os.environ["BIGGER_TERMINAL"] = "1"
     print("🔄 Launching in a larger terminal window for better visibility...")
@@ -30,7 +33,7 @@ def relaunch_in_bigger_terminal(script_path):
 
     terminal_cmds = [
         ["xfce4-terminal", "--geometry=120x40", "-e", f"bash -c 'exec \"{script_path}\"'"],
-        ["gnome-terminal", "--geometry=120x40", "--", "bash", "-c", f"exec \"{script_path}\""],
+        ["gnome-terminal", "--geometry=120x40", "--", "bash", "-c", f"exec \"{script_path}\"'"],
         ["konsole", "--geometry", "120x40", "-e", f"bash -c 'exec \"{script_path}\"'"],
     ]
 
@@ -43,15 +46,45 @@ def relaunch_in_bigger_terminal(script_path):
 
     print("⚠️ Could not detect a graphical terminal. Continuing in current terminal.")
 
+def validate_flag_in_ps_dump(ps_dump_file, expected_flag):
+    print("🔍 Validation: scanning ps_dump.txt for the expected flag...")
+    try:
+        with open(ps_dump_file, "r", encoding="utf-8") as f:
+            for line in f:
+                if expected_flag in line:
+                    print(f"✅ Validation success: found flag {expected_flag} in ps_dump.txt")
+                    return True
+    except Exception as e:
+        print(f"❌ ERROR while validating: {e}", file=sys.stderr)
+    print(f"❌ Validation failed: flag {expected_flag} not found in ps_dump.txt", file=sys.stderr)
+    return False
+
 def main():
     project_root = find_project_root()
     script_dir = os.path.abspath(os.path.dirname(__file__))
-    os.chdir(script_dir)
+    ps_dump = os.path.join(script_dir, "ps_dump.txt")
 
-    # Auto-relaunch in bigger terminal
+    if validation_mode:
+        # Load expected flag from validation unlocks
+        unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            with open(unlock_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            expected_flag = unlocks["15_ProcessInspection"]["real_flag"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        # Validate
+        if validate_flag_in_ps_dump(ps_dump, expected_flag):
+            sys.exit(0)
+        else:
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     relaunch_in_bigger_terminal(__file__)
-
     clear_screen()
+
     print("🖥️ Process Inspection")
     print("=================================\n")
     print("You've obtained a snapshot of running processes (ps_dump.txt).\n")
@@ -60,8 +93,6 @@ def main():
     print("   You'll inspect processes one by one to uncover hidden details.\n")
     pause()
 
-    # Check for ps_dump.txt
-    ps_dump = os.path.join(script_dir, "ps_dump.txt")
     if not os.path.isfile(ps_dump):
         print(f"❌ ERROR: {os.path.basename(ps_dump)} not found in this folder!")
         pause("Press ENTER to exit...")
@@ -100,7 +131,6 @@ def main():
             print("=================================\n")
             time.sleep(0.5)
 
-            # Display details with flags indented
             try:
                 result = subprocess.run(
                     ["grep", proc_name, ps_dump],
@@ -141,4 +171,5 @@ def main():
             clear_screen()
 
 if __name__ == "__main__":
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()

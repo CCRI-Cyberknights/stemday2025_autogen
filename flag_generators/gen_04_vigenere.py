@@ -12,7 +12,7 @@ class VigenereFlagGenerator:
     Encodes an intercepted transmission (including flags) into cipher.txt.
     Stores unlock metadata for validation workflow.
     """
-    VIGENERE_KEY = "login"
+    VIGENERE_KEY = "login"  # Lowercase for consistency
 
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
@@ -34,17 +34,22 @@ class VigenereFlagGenerator:
     def vigenere_encrypt(cls, plaintext: str, key: str = None) -> str:
         """
         Encrypt plaintext using Vigenère cipher with the given key.
+        Mirrors decryption logic to ensure perfect round-trip.
         """
-        key = (key or cls.VIGENERE_KEY).upper()
+        key = (key or cls.VIGENERE_KEY).lower()  # Force lowercase
         result = []
-        key_length = len(key)
-        for i, char in enumerate(plaintext):
+        key_len = len(key)
+        key_indices = [ord(k) - ord('a') for k in key]
+        key_pos = 0
+
+        for char in plaintext:
             if char.isalpha():
                 offset = ord('A') if char.isupper() else ord('a')
                 pi = ord(char) - offset
-                ki = ord(key[i % key_length]) - ord('A')
-                ci = (pi + ki) % 26
-                result.append(chr(ci + offset))
+                ki = key_indices[key_pos % key_len]
+                encrypted = chr((pi + ki) % 26 + offset)
+                result.append(encrypted)
+                key_pos += 1
             else:
                 result.append(char)  # Leave non-alpha chars unchanged
         return ''.join(result)
@@ -102,9 +107,10 @@ class VigenereFlagGenerator:
             cipher_file.write_text(encrypted_message)
             print(f"📝 {cipher_file.relative_to(self.project_root)} created with Vigenère-encrypted transmission.")
 
-            # Record unlock metadata (key required to decrypt)
+            # Record unlock metadata
             self.metadata = {
                 "real_flag": real_flag,
+                "last_password": self.VIGENERE_KEY,
                 "challenge_file": str(cipher_file.relative_to(self.project_root)),
                 "vigenere_key": self.VIGENERE_KEY,
                 "unlock_method": f"Vigenère cipher (key='{self.VIGENERE_KEY}')",

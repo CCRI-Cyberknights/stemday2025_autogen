@@ -96,6 +96,7 @@ class FakeAuthLogFlagGenerator:
             # Record unlock metadata
             self.metadata = {
                 "real_flag": real_flag,
+                "reconstructed_flag": real_flag,  # Added for validator compatibility
                 "challenge_file": str(log_path.relative_to(self.project_root)),
                 "unlock_method": "Inspect auth.log for embedded flag in sshd PIDs",
                 "hint": "Look for unusual process IDs in auth.log to spot the flag."

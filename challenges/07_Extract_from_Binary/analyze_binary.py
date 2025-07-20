@@ -3,6 +3,8 @@ import os
 import sys
 import subprocess
 import time
+import json
+import re
 
 # === Binary Forensics Challenge ===
 
@@ -16,27 +18,72 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
+
+def run_strings(binary_path, output_path):
+    try:
+        with open(output_path, "w") as out_f:
+            subprocess.run(["strings", binary_path], stdout=out_f, check=True)
+    except subprocess.CalledProcessError:
+        print("❌ ERROR: Failed to run 'strings'.", file=sys.stderr)
+        sys.exit(1)
+
+def search_for_flags(file_path, regex_pattern):
+    matches = []
+    try:
+        with open(file_path, "r") as f:
+            for line in f:
+                if re.search(regex_pattern, line):
+                    matches.append(line.strip())
+    except Exception as e:
+        print(f"❌ ERROR during flag search: {e}", file=sys.stderr)
+        sys.exit(1)
+    return matches
 
 def main():
     project_root = find_project_root()
     script_dir = os.path.abspath(os.path.dirname(__file__))
     target_binary = os.path.join(script_dir, "hidden_flag")
     outfile = os.path.join(script_dir, "extracted_strings.txt")
-    temp_matches = os.path.join(script_dir, "temp_matches.txt")
+    regex_pattern = r'\b([A-Z0-9]{4}-){2}[A-Z0-9]{4}\b'
 
+    # === Validation Mode: Silent flag check ===
+    if validation_mode:
+        unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            with open(unlock_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            expected_flag = unlocks["07_ExtractBinary"]["real_flag"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        if not os.path.isfile(target_binary):
+            print(f"❌ ERROR: Target binary '{target_binary}' missing.", file=sys.stderr)
+            sys.exit(1)
+
+        run_strings(target_binary, outfile)
+        matches = search_for_flags(outfile, regex_pattern)
+
+        if expected_flag in matches:
+            print(f"✅ Validation success: found flag {expected_flag}")
+            sys.exit(0)
+        else:
+            print(f"❌ Validation failed: flag {expected_flag} not found in extracted strings.", file=sys.stderr)
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     clear_screen()
     print("🧪 Binary Forensics Challenge")
     print("=============================\n")
     print("📦 Target binary: hidden_flag")
     print("🔧 Tool in use: strings\n")
     print("🎯 Goal: Uncover a hidden flag embedded inside this compiled program.\n")
-    print("💡 Why use 'strings'?")
-    print("   ➡️ 'strings' scans binary files and extracts any readable text sequences.")
-    print("   ➡️ Often used to find debugging info, secret keys, or flags left behind.\n")
     pause()
 
     # Pre-flight check
@@ -47,12 +94,7 @@ def main():
 
     # Run strings and save results
     print(f"\n🔍 Running: strings \"{target_binary}\" > \"{outfile}\"")
-    try:
-        with open(outfile, "w") as out_f:
-            subprocess.run(["strings", target_binary], stdout=out_f, check=True)
-    except subprocess.CalledProcessError:
-        print("❌ ERROR: Failed to run 'strings'.")
-        sys.exit(1)
+    run_strings(target_binary, outfile)
     time.sleep(0.5)
     print(f"✅ All extracted strings saved to: {outfile}\n")
 
@@ -74,26 +116,12 @@ def main():
     # Search for flag patterns
     print("🔎 Scanning for flag-like patterns (format: XXXX-YYYY-ZZZZ)...")
     time.sleep(0.5)
-    match_pattern = r'\b([A-Z0-9]{4}-){2}[A-Z0-9]{4}\b'
-    try:
-        with open(outfile, "r") as f_in, open(temp_matches, "w") as f_out:
-            matches = []
-            for line in f_in:
-                if subprocess.run(
-                    ["grep", "-E", match_pattern],
-                    input=line.encode(),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.DEVNULL
-                ).stdout:
-                    matches.append(line.strip())
-                    f_out.write(line)
-        count = len(matches)
-    except Exception as e:
-        print(f"❌ ERROR while scanning: {e}")
-        sys.exit(1)
+    matches = search_for_flags(outfile, regex_pattern)
 
-    if count > 0:
-        print(f"\n📌 Found {count} possible flag(s) matching that format!")
+    if matches:
+        print(f"\n📌 Found {len(matches)} possible flag(s):")
+        for m in matches:
+            print(f"   ➡️ {m}")
     else:
         print("\n⚠️ No obvious flags found. Try scanning manually in extracted_strings.txt.")
 
@@ -103,12 +131,10 @@ def main():
     if keyword:
         print(f"\n🔎 Searching for '{keyword}' in {outfile}...")
         try:
-            result = subprocess.run(
+            subprocess.run(
                 ["grep", "-i", "--color=always", keyword, outfile],
                 check=False
             )
-            if result.returncode != 0:
-                print(f"❌ No matches for '{keyword}'.")
         except FileNotFoundError:
             print("❌ ERROR: grep command not found.")
     else:
@@ -120,4 +146,5 @@ def main():
     pause("Press ENTER to close this terminal...")
 
 if __name__ == "__main__":
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()

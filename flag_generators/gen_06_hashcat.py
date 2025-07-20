@@ -6,6 +6,7 @@ import subprocess
 import hashlib
 import base64
 import sys
+import json
 from flag_generators.flag_helpers import FlagUtils
 
 
@@ -44,7 +45,7 @@ class HashcatFlagGenerator:
 
     def safe_cleanup(self, challenge_folder: Path):
         """
-        Remove only previously generated assets (ZIPs, hashes.txt, wordlist.txt, encoded segments).
+        Remove previously generated assets (ZIPs, hashes.txt, wordlist.txt, encoded segments).
         """
         targets = [
             challenge_folder / "hashes.txt",
@@ -77,7 +78,7 @@ class HashcatFlagGenerator:
             all_flags = fake_flags + [real_flag]
             random.shuffle(all_flags)
 
-            # Safely split flags into parts
+            # Split flags into parts
             parts = []
             for flag in all_flags:
                 split_parts = flag.replace("-", " ").split()
@@ -98,30 +99,34 @@ class HashcatFlagGenerator:
                 file_path.write_text(encoded_b64)
                 encoded_files.append(file_path)
 
-            # Randomly pick 3 unique passwords
+            # Pick random passwords
             wordlist_template = self.project_root / "flag_generators" / "wordlist.txt"
             all_passwords = wordlist_template.read_text().splitlines()
             chosen_passwords = random.sample(all_passwords, 3)
 
-            # Create hashes.txt and password-protected ZIPs
+            # Create hashes.txt and mapping
             hashes_txt = challenge_folder / "hashes.txt"
-            hashes_txt.write_text("")  # Start fresh
+            hashes_txt.write_text("")
+            hash_password_zip_map = {}
 
             for idx, (password, file) in enumerate(zip(chosen_passwords, encoded_files), start=1):
-                # Add MD5 hash to hashes.txt
-                hash_line = self.md5_hash(password)
-                hashes_txt.write_text(hashes_txt.read_text() + hash_line + "\n")
+                hash_val = self.md5_hash(password)
+                hashes_txt.write_text(hashes_txt.read_text() + hash_val + "\n")
 
-                # Zip and password protect
                 zip_file = segments_dir / f"part{idx}.zip"
                 result = subprocess.run(
-                    ["zip", "-P", password, str(zip_file), str(file)],
-                    capture_output=True, text=True
+                    ["zip", "-j", "-P", password, str(zip_file), str(file)],
+                    capture_output=True,
+                    text=True
                 )
                 if result.returncode != 0:
                     raise RuntimeError(f"❌ Zip failed for {file.name}: {result.stderr.strip()}")
 
-                file.unlink()  # Remove plaintext encoded file
+                file.unlink()
+                hash_password_zip_map[hash_val] = {
+                    "password": password,
+                    "zip_file": str(zip_file.relative_to(self.project_root))
+                }
 
             # Copy shared wordlist.txt into challenge folder
             wordlist_file = challenge_folder / "wordlist.txt"
@@ -134,21 +139,22 @@ class HashcatFlagGenerator:
                 f"with random passwords: {', '.join(chosen_passwords)}"
             )
 
-            # Record unlock metadata
+            # Record unlock metadata with full mapping
             self.metadata = {
                 "real_flag": real_flag,
+                "reconstructed_flag": real_flag,
                 "challenge_files": {
                     "hashes": str(hashes_txt.relative_to(self.project_root)),
                     "wordlist": str(wordlist_file.relative_to(self.project_root)),
                     "segments_dir": str(segments_dir.relative_to(self.project_root)),
                 },
-                "zip_passwords": chosen_passwords,
+                "hash_password_zip_map": hash_password_zip_map,
                 "unlock_method": "Recover MD5 hashes with Hashcat and unzip protected parts",
                 "hint": "Use hashes.txt + wordlist.txt with Hashcat to crack passwords and extract ZIPs."
             }
 
         except Exception as e:
-            print(f"❌ Unexpected error during Hashcat setup: {e}")
+            print(f"❌ Unexpected error during Hashcat setup: {e}", file=sys.stderr)
             sys.exit(1)
 
     def generate_flag(self, challenge_folder: Path) -> str:
@@ -159,7 +165,6 @@ class HashcatFlagGenerator:
         real_flag = FlagUtils.generate_real_flag()
         fake_flags = [FlagUtils.generate_fake_flag() for _ in range(4)]
 
-        # Ensure no accidental duplicate
         while real_flag in fake_flags:
             real_flag = FlagUtils.generate_real_flag()
 

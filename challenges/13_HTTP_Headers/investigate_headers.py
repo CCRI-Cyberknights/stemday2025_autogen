@@ -2,6 +2,7 @@
 import os
 import sys
 import subprocess
+import json
 
 # === HTTP Headers Mystery ===
 
@@ -15,10 +16,12 @@ def find_project_root():
     sys.exit(1)
 
 def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if not validation_mode:
+        os.system('clear' if os.name == 'posix' else 'cls')
 
 def pause(prompt="Press ENTER to continue..."):
-    input(prompt)
+    if not validation_mode:
+        input(prompt)
 
 def check_response_files(files):
     missing = []
@@ -50,11 +53,46 @@ def bulk_scan_for_flags(script_dir):
     except Exception as e:
         print(f"❌ ERROR during bulk scan: {e}")
 
+def validate_responses(responses, expected_flag):
+    """
+    For validation mode: scan all response files for the expected flag.
+    """
+    print("🔍 Validation: scanning all HTTP responses for the expected flag...")
+    for response in responses:
+        try:
+            with open(response, "r", encoding="utf-8") as f:
+                content = f.read()
+                if expected_flag in content:
+                    print(f"✅ Validation success: found flag {expected_flag} in {os.path.basename(response)}")
+                    return True
+        except Exception as e:
+            print(f"❌ ERROR reading {response}: {e}")
+    print(f"❌ Validation failed: flag {expected_flag} not found in any HTTP response.", file=sys.stderr)
+    return False
+
 def main():
     project_root = find_project_root()
     script_dir = os.path.abspath(os.path.dirname(__file__))
     responses = [os.path.join(script_dir, f"response_{i}.txt") for i in range(1, 6)]
 
+    if validation_mode:
+        # Load expected flag from validation unlocks
+        unlock_file = os.path.join(project_root, "web_version_admin", "validation_unlocks.json")
+        try:
+            with open(unlock_file, "r", encoding="utf-8") as f:
+                unlocks = json.load(f)
+            expected_flag = unlocks["13_HTTPHeaders"]["real_flag"]
+        except Exception as e:
+            print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        # Validate
+        if validate_responses(responses, expected_flag):
+            sys.exit(0)
+        else:
+            sys.exit(1)
+
+    # === Student Interactive Mode ===
     clear_screen()
     print("📡 HTTP Headers Mystery")
     print("=================================\n")
@@ -63,8 +101,7 @@ def main():
     print("You've intercepted **five HTTP responses** during a network investigation.")
     print("The real flag is hidden in one of their HTTP headers.\n")
     print("🧠 Flag format: CCRI-AAAA-1111")
-    print("💡 Tip: HTTP headers are key-value pairs sent by a server along with its response.")
-    print("        We can view and search for hidden data inside them.\n")
+    print("💡 Tip: HTTP headers are key-value pairs sent by a server along with its response.\n")
 
     # Pre-flight check
     missing_files = check_response_files(responses)
@@ -105,4 +142,5 @@ def main():
             pause()
 
 if __name__ == "__main__":
+    validation_mode = os.getenv("CCRI_VALIDATE") == "1"
     main()
