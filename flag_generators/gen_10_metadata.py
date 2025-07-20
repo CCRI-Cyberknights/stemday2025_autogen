@@ -90,6 +90,8 @@ class MetadataFlagGenerator:
             except Exception as e:
                 print(f"⚠️ Could not remove backup file: {e}", file=sys.stderr)
 
+        # === Print dry-run info ===
+        print(f"🎭 Fake flags: {', '.join(fake_flags)}")
         print(f"✅ Embedded real flag in UserComment: {real_flag}")
 
     def generate_flag(self, challenge_folder: Path) -> str:

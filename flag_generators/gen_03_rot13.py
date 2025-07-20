@@ -4,13 +4,14 @@ from pathlib import Path
 import random
 import codecs
 import sys
+import time
 from flag_generators.flag_helpers import FlagUtils
 
 
 class ROT13FlagGenerator:
     """
     Generator for the ROT13 cipher challenge.
-    Embeds real and fake flags into a cipher.txt file.
+    Encodes an entire intercepted message (including flags) into cipher.txt.
     """
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
@@ -32,9 +33,33 @@ class ROT13FlagGenerator:
         """Apply ROT13 cipher to the given text."""
         return codecs.encode(text, "rot_13")
 
+    @staticmethod
+    def animate_rot13_line_by_line(text_lines, delay=0.05):
+        """Animate ROT13 transformation line-by-line for helper script."""
+        print("🔄 Applying ROT13 transformation...\n")
+
+        for line in text_lines:
+            original = line.rstrip("\n")
+
+            for shift in range(1, 14):  # ROT13 is 13 shifts
+                rotated = "".join(
+                    chr(((ord(c) - ord('A') + 1) % 26 + ord('A')) if c.isupper()
+                        else chr(((ord(c) - ord('a') + 1) % 26 + ord('a')))
+                        if c.islower() else c)
+                    for c in original
+                )
+                sys.stdout.write(f"\r{rotated}   ")  # Overwrite line
+                sys.stdout.flush()
+                original = rotated  # Update for next shift
+                time.sleep(delay)
+
+            print(rotated)  # Print fully rotated line
+            time.sleep(0.2)  # Pause before next line
+        print("\n✅ ROT13 transformation complete.")
+
     def embed_flags(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
-        Create cipher.txt in the challenge folder with ROT13-encoded flags.
+        Create cipher.txt in the challenge folder with an entire ROT13-encoded message.
         """
         cipher_file = challenge_folder / "cipher.txt"
 
@@ -48,15 +73,27 @@ class ROT13FlagGenerator:
             all_flags = fake_flags + [real_flag]
             random.shuffle(all_flags)
 
-            # Apply ROT13 to each flag
-            encoded_flags = [self.rot13(flag) for flag in all_flags]
+            # Build plaintext message
+            message = (
+                "Transmission Start\n"
+                "------------------------\n"
+                "To: LIBER8 Command Node\n"
+                "From: Recon Unit 5\n\n"
+                "Flag candidates from intercepted communications. "
+                "Message scrambled with a simple cipher for transit security.\n\n"
+                "Candidates:\n"
+                + "\n".join(f"- {flag}" for flag in all_flags)
+                + "\n\nValidate and extract the correct CCRI flag.\n\n"
+                "Transmission End\n"
+                "------------------------\n"
+            )
+
+            # ROT13 the entire message
+            encoded_message = self.rot13(message)
 
             # Write to cipher.txt
-            cipher_file.write_text(
-                "Multiple codes recovered. Only one fits the agency’s flag format.\n\n" +
-                "\n".join(f"- {flag}" for flag in encoded_flags)
-            )
-            print(f"📝 cipher.txt created with {len(all_flags)} ROT13-encoded flags.")
+            cipher_file.write_text(encoded_message)
+            print(f"📝 {cipher_file.relative_to(self.project_root)} created with ROT13-encoded transmission.")
 
         except PermissionError:
             print(f"❌ Permission denied: Cannot write to {cipher_file.relative_to(self.project_root)}")
@@ -78,5 +115,6 @@ class ROT13FlagGenerator:
             real_flag = FlagUtils.generate_real_flag()
 
         self.embed_flags(challenge_folder, real_flag, fake_flags)
+        print('   🎭 Fake flags:', ', '.join(fake_flags))
         print(f"✅ Admin flag: {real_flag}")
         return real_flag

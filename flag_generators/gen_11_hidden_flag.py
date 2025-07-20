@@ -131,6 +131,9 @@ class HiddenFlagGenerator:
         real_flag_file = flag_files[0]
         fake_flag_files = flag_files[1:]
 
+        # ✅ Print fake flags before popping them
+        print(f"🎭 Fake flags: {', '.join(fake_flags)}")
+
         for file_path in all_files:
             try:
                 if file_path == real_flag_file:

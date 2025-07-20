@@ -27,20 +27,20 @@ def main():
     output_file = os.path.join(script_dir, "decoded_output.txt")
 
     clear_screen()
-    print("🧩 Base64 Decoder Helper")
-    print("===========================\n")
+    print("📡 Intercepted Transmission Decoder")
+    print("=====================================\n")
     print("📄 File to analyze: encoded.txt")
-    print("🎯 Goal: Decode this file and find the hidden CCRI flag.\n")
+    print("🎯 Goal: Decode the intercepted transmission and locate the hidden CCRI flag.\n")
     print("💡 What is Base64?")
-    print("   ➡️ A text-based encoding scheme that turns binary data into readable text.")
-    print("   Used to safely transmit data over systems that handle text better than raw binary.\n")
-    print("🔧 We'll use the Linux tool 'base64' to reverse the encoding.\n")
+    print("   ➡️ A text-based encoding scheme that transforms binary data into readable text.")
+    print("   ➡️ Commonly used for encoding transmissions so they aren’t corrupted over text-only channels.\n")
     pause()
 
     clear_screen()
     print("🛠️ Behind the Scenes")
     print("---------------------------")
-    print("To decode the file, we’ll run:\n")
+    print("This message was captured from a compromised Liber8 system.\n")
+    print("It’s been Base64-encoded for secure transit. To recover it, we’ll use the Linux tool `base64`:\n")
     print("   base64 --decode encoded.txt\n")
     print("🔑 Breakdown:")
     print("   base64         → Call the Base64 tool")
@@ -49,11 +49,10 @@ def main():
     pause()
 
     # Simulate analysis
-    print("\n🔍 Checking file for Base64 structure...")
+    print("\n🔍 Scanning file for Base64 structure...")
     pause("Press ENTER to continue decoding...")
-    print("✅ Structure confirmed!\n")
-    print("⏳ Decoding content using:")
-    print(f"   base64 --decode \"{input_file}\"\n")
+    print("✅ Base64 structure confirmed!\n")
+    print("⏳ Decoding intercepted transmission...\n")
 
     try:
         result = subprocess.run(
@@ -75,7 +74,7 @@ def main():
         sys.exit(1)
 
     # Display and save decoded output
-    print("\n📄 Decoded Message:")
+    print("\n📡 Decoded Transmission:")
     print("-----------------------------")
     print(decoded)
     print("-----------------------------")
@@ -83,7 +82,7 @@ def main():
         f.write(decoded + "\n")
 
     print(f"\n📁 Decoded output saved as: {output_file}")
-    print("🔎 Look for a string matching this format: CCRI-AAAA-1111")
+    print("🔎 Search carefully for the CCRI flag format: CCRI-AAAA-1111")
     print("🧠 This is your flag. Copy it into the scoreboard!\n")
     pause("Press ENTER to close this terminal...")
 

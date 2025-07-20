@@ -18,18 +18,23 @@ class FlagUtils:
     @classmethod
     def generate_fake_flag(cls) -> str:
         """
-        Generate an invalid flag in one of several fake formats.
+        Generate an invalid flag in one of two strict fake formats.
+        **NOTE: Fake flags must NOT begin with CCRI-**
         """
-        letters1 = ''.join(random.choices(string.ascii_uppercase, k=4))
-        letters2 = ''.join(random.choices(string.ascii_uppercase, k=4))
-        digits = ''.join(random.choices(string.digits, k=4))
-        format_choice = random.choice([1, 2, 3])
-        if format_choice == 1:
-            return f"{letters1}-{letters2}-{digits}"  # AAAA-BBBB-1111
-        elif format_choice == 2:
-            return f"CCRI-{letters1}-{digits}{random.choice(string.ascii_uppercase)}"  # CCRI-ABCD-1234X
-        else:
-            return f"{letters1}-{digits}-{letters2}"  # AAAA-1111-BBBB
+        while True:
+            letters1 = ''.join(random.choices(string.ascii_uppercase, k=4))
+            letters2 = ''.join(random.choices(string.ascii_uppercase, k=4))
+            digits = ''.join(random.choices(string.digits, k=4))
+            format_choice = random.choice([1, 2])
+
+            if format_choice == 1:
+                fake = f"{letters1}-{letters2}-{digits}"  # AAAA-BBBB-1111
+            else:
+                fake = f"{letters1}-{digits}-{letters2}"  # AAAA-1111-BBBB
+
+            # Ensure no fake flag ever starts with CCRI
+            if not fake.startswith("CCRI"):
+                return fake
 
     @staticmethod
     def validate_flag_format(flag: str) -> bool:

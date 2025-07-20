@@ -2,6 +2,7 @@
 import os
 import sys
 import time
+from flag_generators.gen_03_rot13 import ROT13FlagGenerator  # ✅ Import animation function
 
 # === ROT13 Decoder Helper ===
 
@@ -19,33 +20,6 @@ def clear_screen():
 
 def pause(prompt="Press ENTER to continue..."):
     input(prompt)
-
-def rot13_char(c):
-    if 'a' <= c <= 'z':
-        return chr((ord(c) - ord('a') + 13) % 26 + ord('a'))
-    elif 'A' <= c <= 'Z':
-        return chr((ord(c) - ord('A') + 13) % 26 + ord('A'))
-    else:
-        return c
-
-def animate_rot13(encoded_text):
-    decoded_chars = list(encoded_text)
-    for i in range(len(encoded_text)):
-        c = encoded_text[i]
-        if c.isalpha():
-            for step in range(13):
-                rotated = chr(((ord(c.lower()) - ord('a') + step) % 26 + ord('a')))
-                if c.isupper():
-                    rotated = rotated.upper()
-                decoded_chars[i] = rotated
-                clear_screen()
-                print("🔐 ROT13 Decoder Helper")
-                print("===========================\n")
-                print("🌀 Decrypting:\n")
-                print("".join(decoded_chars))
-                time.sleep(0.02)
-            decoded_chars[i] = rot13_char(c)
-    return "".join(decoded_chars)
 
 def main():
     project_root = find_project_root()
@@ -66,9 +40,9 @@ def main():
     clear_screen()
     print("🛠️ Behind the Scenes")
     print("---------------------------")
-    print("We’ll use a Python helper to process each character:\n")
-    print("   For every letter in cipher.txt:")
-    print("     ➡️ Rotate it forward by 13 places (A→N, N→A).\n")
+    print("We’ll use a Python helper to process each line:\n")
+    print("   For every line in cipher.txt:")
+    print("     ➡️ Rotate each letter forward by 13 places (A→N, N→A).\n")
     print("💻 The Python decoder also animates this process so you can watch it work.\n")
     pause("Press ENTER to launch the animated decoder...")
 
@@ -78,21 +52,25 @@ def main():
         pause("Press ENTER to close this terminal...")
         sys.exit(1)
 
+    # Read encoded message
     with open(cipher_file, "r") as f:
-        encoded = f.read()
+        encoded_lines = f.readlines()
 
-    final_message = animate_rot13(encoded)
+    clear_screen()
+    print("🔓 Decoding intercepted message...\n")
+
+    # Animate line-by-line ROT13 transformation
+    ROT13FlagGenerator.animate_rot13_line_by_line(encoded_lines, delay=0.05)
+
+    # Fully decode for output file
+    decoded_message = "".join([ROT13FlagGenerator.rot13(line) for line in encoded_lines])
 
     # Save decoded output
     with open(output_file, "w") as f_out:
-        f_out.write(final_message + "\n")
+        f_out.write(decoded_message + "\n")
 
-    clear_screen()
-    print("✅ Final Decoded Message:")
-    print("-----------------------------")
-    print(final_message)
-    print("-----------------------------")
-    print(f"📁 Saved to: {output_file}\n")
+    print("\n✅ Final Decoded Message saved to:")
+    print(f"   📁 {output_file}\n")
 
     print("🧠 Look carefully: Only one string matches the CCRI flag format: CCRI-AAAA-1111")
     print("📋 Copy the correct flag and paste it into the scoreboard when ready.\n")

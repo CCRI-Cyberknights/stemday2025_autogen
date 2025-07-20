@@ -143,6 +143,8 @@ This endpoint returns plain text responses."""
             all_flags = fake_flags + [real_flag]
             random.shuffle(all_flags)
 
+            print(f"🎭 Fake flags: {', '.join(fake_flags)}")  # <-- Added this print
+
             for i, flag in enumerate(all_flags, start=1):
                 file_path = challenge_folder / f"response_{i}.txt"
                 response_content = self.generate_http_response(flag)

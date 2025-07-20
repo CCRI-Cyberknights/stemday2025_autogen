@@ -13,7 +13,7 @@ from Challenge import Challenge
 # === Import all generators ===
 from flag_generators.gen_01_stego import StegoFlagGenerator
 from flag_generators.gen_02_base64 import Base64FlagGenerator
-from flag_generators.gen_03_rot13 import Rot13FlagGenerator
+from flag_generators.gen_03_rot13 import ROT13FlagGenerator
 from flag_generators.gen_04_vigenere import VigenereFlagGenerator
 from flag_generators.gen_05_archive_password import ArchivePasswordFlagGenerator
 from flag_generators.gen_06_hashcat import HashcatFlagGenerator
@@ -22,19 +22,19 @@ from flag_generators.gen_08_fake_auth_log import FakeAuthLogFlagGenerator
 from flag_generators.gen_09_fix_script import FixScriptFlagGenerator
 from flag_generators.gen_10_metadata import MetadataFlagGenerator
 from flag_generators.gen_11_hidden_flag import HiddenFlagGenerator
-from flag_generators.gen_12_qr_codes import QRCodesFlagGenerator
-from flag_generators.gen_13_http_headers import HTTPHeadersFlagGenerator
+from flag_generators.gen_12_qr_codes import QRCodeFlagGenerator
+from flag_generators.gen_13_http_headers import HTTPHeaderFlagGenerator
 from flag_generators.gen_14_subdomain_sweep import SubdomainSweepFlagGenerator
 from flag_generators.gen_15_process_inspection import ProcessInspectionFlagGenerator
 from flag_generators.gen_16_hex_hunting import HexHuntingFlagGenerator
-from flag_generators.gen_17_nmap_scanning import NmapScanningFlagGenerator
+from flag_generators.gen_17_nmap_scanning import NmapScanFlagGenerator
 from flag_generators.gen_18_pcap_search import PcapSearchFlagGenerator
 
 # === Mapping challenge IDs to generator classes ===
 GENERATOR_CLASSES = {
     "01_Stego": StegoFlagGenerator,
     "02_Base64": Base64FlagGenerator,
-    "03_ROT13": Rot13FlagGenerator,
+    "03_ROT13": ROT13FlagGenerator,
     "04_Vigenere": VigenereFlagGenerator,
     "05_ArchivePassword": ArchivePasswordFlagGenerator,
     "06_Hashcat": HashcatFlagGenerator,
@@ -43,12 +43,12 @@ GENERATOR_CLASSES = {
     "09_FixScript": FixScriptFlagGenerator,
     "10_Metadata": MetadataFlagGenerator,
     "11_HiddenFlag": HiddenFlagGenerator,
-    "12_QRCodes": QRCodesFlagGenerator,
-    "13_HTTPHeaders": HTTPHeadersFlagGenerator,
+    "12_QRCodes": QRCodeFlagGenerator,
+    "13_HTTPHeaders": HTTPHeaderFlagGenerator,
     "14_SubdomainSweep": SubdomainSweepFlagGenerator,
     "15_ProcessInspection": ProcessInspectionFlagGenerator,
     "16_Hex_Hunting": HexHuntingFlagGenerator,
-    "17_Nmap_Scanning": NmapScanningFlagGenerator,
+    "17_Nmap_Scanning": NmapScanFlagGenerator,
     "18_Pcap_Search": PcapSearchFlagGenerator,
 }
 
@@ -79,6 +79,12 @@ class FlagGenerationManager:
             shutil.copy2(self.web_admin_dir / "challenges.json", backup_file)
             print(f"📦 Backup created: {backup_file.relative_to(self.project_root)}")
 
+    def print_flag_report(self, real_flag, fake_flags):
+        """Print real and fake flags for sanity checking."""
+        print(f"   🏁 Real flag: {real_flag}")
+        for fake in fake_flags:
+            print(f"   🎭 Fake flag: {fake}")
+
     def generate_flags(self):
         """Iterate through challenges and generate flags."""
         if self.dry_run:
@@ -105,7 +111,13 @@ class FlagGenerationManager:
                 generator_cls = GENERATOR_CLASSES.get(challenge.getId())
                 if generator_cls:
                     generator = generator_cls()
+                    
+                    # Intercept fake flags if available
                     real_flag = generator.generate_flag(target_folder)
+                    fake_flags = getattr(generator, "last_fake_flags", [])
+
+                    # Sanity check: print real + fake flags
+                    self.print_flag_report(real_flag, fake_flags)
 
                     if self.dry_run:
                         print(f"✅ [Dry-Run] {challenge.getId()}: Real flag = {real_flag}")
@@ -130,18 +142,20 @@ class FlagGenerationManager:
 
 # === Entry Point ===
 if __name__ == "__main__":
-    # Prompt for dry-run mode
-    while True:
-        choice = input("💡 Run in dry-run mode? (y/n): ").strip().lower()
-        if choice in ["y", "yes"]:
-            dry_run = True
-            break
-        elif choice in ["n", "no"]:
-            dry_run = False
-            break
-        else:
-            print("❓ Please answer 'y' or 'n'.")
+    try:
+        while True:
+            choice = input("💡 Run in dry-run mode? (y/n): ").strip().lower()
+            if choice in ["y", "yes"]:
+                dry_run = True
+                break
+            elif choice in ["n", "no"]:
+                dry_run = False
+                break
+            else:
+                print("❓ Please answer 'y' or 'n'.")
 
-    manager = FlagGenerationManager(dry_run=dry_run)
-    manager.generate_flags()
-
+        manager = FlagGenerationManager(dry_run=dry_run)
+        manager.generate_flags()
+    except Exception as e:
+        print(f"\n❌ ERROR: {e}")
+        input("🔴 Press Enter to close...")

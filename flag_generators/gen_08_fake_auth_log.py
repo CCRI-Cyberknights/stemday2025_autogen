@@ -95,4 +95,5 @@ class FakeAuthLogFlagGenerator:
             real_flag = FlagUtils.generate_real_flag()
 
         self.embed_flags(challenge_folder, real_flag, fake_flags)
+        print('   🎭 Fake flags:', ', '.join(fake_flags))
         return real_flag

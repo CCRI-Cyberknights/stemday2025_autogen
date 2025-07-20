@@ -138,6 +138,8 @@ class SubdomainSweepFlagGenerator:
             flags = fake_flags + [real_flag]
             random.shuffle(flags)
 
+            print(f"🎭 Fake flags: {', '.join(fake_flags)}")  # <-- Added this print
+
             for (subdomain, title, header_title, header_desc), footer, flag in zip(
                 self.SUBDOMAINS, self.FOOTERS, flags
             ):

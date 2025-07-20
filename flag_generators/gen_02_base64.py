@@ -7,10 +7,10 @@ import sys
 from flag_generators.flag_helpers import FlagUtils
 
 
-class Base64DumpFlagGenerator:
+class Base64FlagGenerator:
     """
-    Generator for the Base64 memory dump challenge.
-    Embeds real and fake flags into a memory_dump.txt file.
+    Generator for the Base64 intercepted message challenge.
+    Encodes an intercepted transmission (including flags) into encoded.txt.
     """
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
@@ -29,9 +29,9 @@ class Base64DumpFlagGenerator:
 
     def embed_flags(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
-        Create a memory_dump.txt in the challenge folder with base64-encoded flags.
+        Create encoded.txt in the challenge folder with base64-encoded intercepted message.
         """
-        memory_dump_file = challenge_folder / "memory_dump.txt"
+        encoded_file = challenge_folder / "encoded.txt"
 
         try:
             if not challenge_folder.exists():
@@ -43,21 +43,32 @@ class Base64DumpFlagGenerator:
             all_flags = fake_flags + [real_flag]
             random.shuffle(all_flags)
 
-            # Base64 encode each flag
-            encoded_flags = [
-                base64.b64encode(flag.encode("utf-8")).decode("utf-8")
-                for flag in all_flags
-            ]
-
-            # Write to memory_dump.txt
-            memory_dump_file.write_text(
-                "Multiple values recovered from the memory dump. Only one is a valid CCRI flag.\n\n" +
-                "\n".join(f"- {flag}" for flag in encoded_flags)
+            # Build plaintext intercepted message
+            message = (
+                "Transmission Start\n"
+                "------------------------\n"
+                "To: LIBER8 Command Node\n"
+                "From: Field Agent 4\n\n"
+                "Flag candidates identified during network sweep. "
+                "Message encoded for secure transit.\n\n"
+                "Candidates:\n"
+                + "\n".join(f"- {flag}" for flag in all_flags)
+                + "\n\nVerify and submit the authentic CCRI flag.\n\n"
+                "Transmission End\n"
+                "------------------------\n"
             )
-            print(f"📄 memory_dump.txt created with {len(all_flags)} base64-encoded flags.")
+
+            # Base64 encode the entire message
+            encoded_message = base64.b64encode(message.encode("utf-8")).decode("utf-8")
+
+            # Write to encoded.txt
+            encoded_file.write_text(
+                encoded_message + "\n"
+            )
+            print(f"📄 {encoded_file.relative_to(self.project_root)} created with Base64-encoded transmission.")
 
         except PermissionError:
-            print(f"❌ Permission denied: Cannot write to {memory_dump_file.relative_to(self.project_root)}")
+            print(f"❌ Permission denied: Cannot write to {encoded_file.relative_to(self.project_root)}")
             sys.exit(1)
         except Exception as e:
             print(f"❌ Unexpected error: {e}")
@@ -65,7 +76,7 @@ class Base64DumpFlagGenerator:
 
     def generate_flag(self, challenge_folder: Path) -> str:
         """
-        Generate flags and embed them into memory_dump.txt.
+        Generate flags and embed them into encoded.txt.
         Returns plaintext real flag.
         """
         real_flag = FlagUtils.generate_real_flag()
@@ -76,5 +87,6 @@ class Base64DumpFlagGenerator:
             real_flag = FlagUtils.generate_real_flag()
 
         self.embed_flags(challenge_folder, real_flag, fake_flags)
+        print('   🎭 Fake flags:', ', '.join(fake_flags))
         print(f"✅ Admin flag: {real_flag}")
         return real_flag

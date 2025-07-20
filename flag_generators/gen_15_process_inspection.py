@@ -115,6 +115,8 @@ class ProcessInspectionFlagGenerator:
 
             # Write output
             dump_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+            print(f"🎭 Fake flags: {', '.join(fake_flags)}")  # <-- Added this print
             print(f"✅ ps_dump.txt created in {challenge_folder.relative_to(self.project_root)} (real flag: {real_flag})")
 
         except Exception as e:

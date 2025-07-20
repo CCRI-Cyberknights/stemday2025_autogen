@@ -9,16 +9,12 @@
 !.ccri_ctf_root
 
 # Setup scripts
-!start_web_hub.sh
-!stop_web_hub.sh
-!setup_contributor.sh
 !setup_contributor.py
 !start_web_hub.py
 !stop_web_hub.py
 
 # Admin tools
 !generate_all_flags.py
-!generate_takehome_flags.py
 
 # Desktop shortcuts
 !Launch CCRI CTF Hub.desktop
@@ -30,6 +26,14 @@
 # Ignore Python cache only in flag_generators
 flag_generators/__pycache__/
 flag_generators/**/__pycache__/
+
+# Ignore dry run output
+dryrun_output
+dryrun_output/**
+
+# Ignore generated web_version
+web_version
+web_version/**
 
 # Un-ignore challenges and web_version_admin
 !challenges/

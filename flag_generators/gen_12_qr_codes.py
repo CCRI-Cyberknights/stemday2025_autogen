@@ -66,6 +66,8 @@ class QRCodeFlagGenerator:
         all_flags = fake_flags + [real_flag]
         random.shuffle(all_flags)
 
+        print(f"🎭 Fake flags: {', '.join(fake_flags)}")  # <-- Added printout of fake flags
+
         print(f"🎯 Generating QR codes in: {challenge_folder.relative_to(self.project_root)}")
         for i, flag in enumerate(all_flags, start=1):
             qr_file = challenge_folder / f"qr_{i:02}.png"

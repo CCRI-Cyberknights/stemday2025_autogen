@@ -9,7 +9,7 @@ from flag_generators.flag_helpers import FlagUtils
 class VigenereFlagGenerator:
     """
     Generator for the Vigenère cipher challenge.
-    Embeds real and fake flags into a cipher.txt file.
+    Encodes an intercepted transmission (including flags) into cipher.txt.
     """
     VIGENERE_KEY = "login"
 
@@ -49,7 +49,7 @@ class VigenereFlagGenerator:
 
     def embed_flags(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
-        Create cipher.txt in the challenge folder with Vigenère-encrypted flags.
+        Create cipher.txt in the challenge folder with a Vigenère-encrypted message.
         """
         cipher_file = challenge_folder / "cipher.txt"
 
@@ -63,25 +63,27 @@ class VigenereFlagGenerator:
             all_flags = fake_flags + [real_flag]
             random.shuffle(all_flags)
 
-            # Encrypt each flag
-            encrypted_flags = [self.vigenere_encrypt(flag) for flag in all_flags]
+            # Build plaintext message
+            message = (
+                "Transmission Start\n"
+                "------------------------\n"
+                "To: LIBER8 Command Node\n"
+                "From: Field Unit 7\n\n"
+                "Status report: Flag candidates identified during operation. "
+                "Data has been encoded for secure transit.\n\n"
+                "Candidates:\n"
+                + "\n".join(f"- {flag}" for flag in all_flags)
+                + "\n\nVerify the true flag before submission.\n\n"
+                "Transmission End\n"
+                "------------------------\n"
+            )
+
+            # Encrypt the entire message
+            encrypted_message = self.vigenere_encrypt(message)
 
             # Write to cipher.txt
-            preamble = (
-                "Agency decrypted several possible code fragments from the recovered file.\n\n"
-                "Here are the extracted flag-like values:\n"
-            )
-            postamble = (
-                "\nOnly one of these follows the official agency flag format.\n\n"
-                "Cross-check carefully before submitting."
-            )
-
-            cipher_file.write_text(
-                preamble +
-                "\n".join(f"- {flag}" for flag in encrypted_flags) +
-                postamble
-            )
-            print(f"📝 {cipher_file.relative_to(self.project_root)} created with {len(all_flags)} Vigenère-encrypted flags.")
+            cipher_file.write_text(encrypted_message)
+            print(f"📝 {cipher_file.relative_to(self.project_root)} created with Vigenère-encrypted transmission.")
 
         except PermissionError:
             print(f"❌ Permission denied: Cannot write to {cipher_file.relative_to(self.project_root)}")
@@ -103,5 +105,6 @@ class VigenereFlagGenerator:
             real_flag = FlagUtils.generate_real_flag()
 
         self.embed_flags(challenge_folder, real_flag, fake_flags)
+        print('   🎭 Fake flags:', ', '.join(fake_flags))
         print(f"✅ Admin flag: {real_flag}")
         return real_flag
