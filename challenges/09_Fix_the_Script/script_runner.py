@@ -88,13 +88,15 @@ def main():
             with open(unlock_file, "r", encoding="utf-8") as f:
                 unlocks = json.load(f)
             expected_flag = unlocks["09_FixScript"]["real_flag"]
+            correct_op = unlocks["09_FixScript"].get("correct_operator", "+")
         except Exception as e:
             print(f"❌ ERROR: Could not load validation unlocks: {e}", file=sys.stderr)
             sys.exit(1)
 
-        # Patch script to use "+" operator
-        replace_operator(broken_script, "+")
+        # Patch script with the correct operator from metadata
+        replace_operator(broken_script, correct_op)
         fixed_output = run_python_script(broken_script)
+
         if expected_flag in fixed_output:
             print(f"✅ Validation success: found flag {expected_flag}")
             sys.exit(0)

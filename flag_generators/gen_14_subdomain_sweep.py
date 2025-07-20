@@ -65,16 +65,22 @@ class SubdomainSweepFlagGenerator:
 
     def generate_logs(self, flag: str) -> str:
         """
-        Generate 3–5 log lines, embedding the flag in one randomly.
+        Generate 3–5 log lines, always embedding the flag in one randomly.
         """
         lines = random.sample(self.ALT_PRE_LINES, random.randint(3, 5))
         insert_pos = random.randint(0, len(lines) - 1)
-        lines[insert_pos] = lines[insert_pos].format(flag)
+
+        # ✅ Ensure the flag is embedded
+        if '{}' in lines[insert_pos]:
+            lines[insert_pos] = lines[insert_pos].format(flag)
+        else:
+            lines[insert_pos] = f"[TRACE] Embedded flag: {flag}"
+
         return "\n".join(lines)
 
     def embed_flag(self, flag: str) -> str:
         """
-        Randomly embed the flag in either a <p> or <pre> block.
+        Always embed the flag in either a <p> or <pre> block.
         """
         if random.random() < 0.5:
             return f"<p><strong>Note:</strong> {flag}</p>"
@@ -89,9 +95,9 @@ class SubdomainSweepFlagGenerator:
         flag_block = self.embed_flag(flag)
 
         return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang=\"en\">
 <head>
-  <meta charset="UTF-8">
+  <meta charset=\"UTF-8\">
   <title>{title}</title>
 </head>
 <body>
@@ -176,7 +182,13 @@ class SubdomainSweepFlagGenerator:
         Return the real flag.
         """
         real_flag = FlagUtils.generate_real_flag()
-        fake_flags = list({FlagUtils.generate_fake_flag() for _ in range(4)})
+
+        # ✅ Guarantee 4 unique fake flags
+        fake_flags = set()
+        while len(fake_flags) < 4:
+            fake_flags.add(FlagUtils.generate_fake_flag())
+
+        fake_flags = list(fake_flags)
 
         while real_flag in fake_flags:
             real_flag = FlagUtils.generate_real_flag()

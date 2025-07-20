@@ -1,19 +1,15 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:45:23 GMT
-Server: Go HTTP Server/1.19
-Content-Type: text/plain; charset=UTF-8
+Date: Sun, 30 Jun 2025 15:59:36 GMT
+Server: nginx/1.24.0
+Content-Type: text/html; charset=UTF-8
 Cache-Control: public, max-age=86400
-X-Powered-By: Node.js/18.16.0
-X-Flag: RXNR-MEVB-8009
+X-Powered-By: PHP/8.1.12
+X-Flag: JBDR-PTLE-8857
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
+Set-Cookie: sessionid=nx6rv5jxkwxk; HttpOnly; Secure
 
-<html>
-  <head><title>Internal Dashboard</title></head>
-  <body>
-    <h1>Liber8 Ops Dashboard</h1>
-    <p>Authentication successful. Redirecting...</p>
-  </body>
-</html>
+Welcome to the Liber8 data endpoint.
+This endpoint returns plain text responses.
 
-<!-- Debug: Temporary caching enabled -->
+<!-- Developer note: Remove X-Test headers before release -->

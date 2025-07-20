@@ -32,19 +32,19 @@ class HexHuntingFlagGenerator:
     @staticmethod
     def insert_flag(binary_data: bytearray, flag: str, offset: int):
         """
-        Insert a flag string at a specific offset in the binary data.
+        Insert a flag string at a specific offset, with printable padding for discovery.
         """
         flag_bytes = flag.encode("utf-8")
-        if offset + len(flag_bytes) > len(binary_data):
-            raise ValueError(f"❌ Offset {offset} + flag length {len(flag_bytes)} exceeds binary size {len(binary_data)}")
-        binary_data[offset:offset + len(flag_bytes)] = flag_bytes
+        padded_flag = flag_bytes + b" " * random.randint(1, 3)  # Add space padding
+        if offset + len(padded_flag) > len(binary_data):
+            raise ValueError(f"❌ Offset {offset} + flag length {len(padded_flag)} exceeds binary size {len(binary_data)}")
+        binary_data[offset:offset + len(padded_flag)] = padded_flag
 
     def generate_hex_file(self, challenge_folder: Path, real_flag: str, fake_flags: list):
         """
         Generate hex_flag.bin in the challenge folder.
         """
         challenge_folder.mkdir(parents=True, exist_ok=True)
-
         output_path = challenge_folder / "hex_flag.bin"
 
         # Overwrite only hex_flag.bin

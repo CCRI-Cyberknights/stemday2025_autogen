@@ -26,6 +26,7 @@ def pause(prompt="Press ENTER to continue..."):
         input(prompt)
 
 def scan_for_flags(log_file, regex_pattern):
+    """Scan the full log file for flag-like patterns."""
     matches = []
     try:
         with open(log_file, "r") as f:
@@ -84,7 +85,9 @@ def main():
 
         matches = scan_for_flags(log_file, regex_pattern)
 
-        if expected_flag in matches:
+        # Check if the expected flag is present anywhere in the log
+        found_flag = any(expected_flag in line for line in matches)
+        if found_flag:
             print(f"✅ Validation success: found flag {expected_flag}")
             sys.exit(0)
         else:

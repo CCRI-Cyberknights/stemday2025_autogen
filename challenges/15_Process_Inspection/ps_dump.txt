@@ -1,105 +1,106 @@
 USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
-user2     8991  1.1  1.3  31609   39061  pts/1     Sl   Jul06   0:31   /usr/bin/code /home/user2/project
-user3     9263  1.2  1.2  52124   29208  pts/1     R+   Jul30   2:44   /usr/sbin/apache2 -k start
-user2     2416  0.8  1.5  28482   33549  ?         S    Jul26   0:17   /usr/bin/thunderbird
-postfix   5317  0.9  0.9  67258   14006  ?         S    Jul29   0:09   /usr/sbin/sshd -D
-root      7604  0.7  0.2  64788   38443  pts/0     R+   Jul19   1:14   /usr/bin/harvest --scan --output /tmp/result.log
-postfix   8147  0.2  0.2  25658   17604  ?         Sl   Jul29   1:26   /usr/bin/python3 /usr/lib/update-manager/check-new-release
-syslog    8283  0.2  0.9  70354   31098  pts/0     Ssl  Jul18   1:24   /usr/sbin/acpid
-mysql     6101  0.9  1.2  33461   6604   pts/1     Z    Jul15   2:50   /usr/sbin/acpid
-syslog    3109  0.6  0.7  50187   7007   pts/0     R    Jul07   1:25   /usr/bin/htop
-daemon    2672  0.7  0.4  64800   39510  pts/1     R    Jul16   2:08   /usr/sbin/rsyslogd -n
-root      3440  1.1  0.8  51197   27684  pts/1     Sl   Jul24   1:29   /usr/bin/code /home/user3/project
-user1     5947  0.7  0.6  56194   17939  ?         Sl   Jul08   1:04   /usr/sbin/ufw --daemon
-user1     8460  1.1  0.4  25789   39900  pts/1     R+   Jul07   0:43   /lib/systemd/systemd-journald
-user2     3932  0.6  1.4  24356   3993   pts/1     Sl   Jul06   2:05   /usr/bin/thunderbird
-root      3839  1.2  1.2  25585   15353  pts/0     Z    Jul19   2:52   /usr/bin/firefox --no-remote
-nobody    5443  1.1  1.1  50738   7429   pts/1     R    Jul19   0:49   /usr/sbin/rsyslogd -n
-user2     520   0.3  0.3  67862   6973   pts/0     Z    Jul15   0:48   /lib/systemd/systemd-journald
-root      912   0.3  1.0  41835   30538  pts/0     Ss   Jul30   1:08   /usr/sbin/apache2 -k start
-root      1178  1.3  1.1  36446   20635  pts/1     S    Jul09   0:19   /usr/sbin/irqbalance
-mysql     545   1.4  0.3  61596   8062   pts/1     S    Jul10   1:20   /usr/bin/firefox --no-remote
-user2     3757  0.1  0.2  77247   10263  pts/1     S    Jul21   2:09   /usr/sbin/irqbalance
-syslog    5234  0.8  0.7  26889   9530   ?         D    Jul02   1:54   /usr/bin/firefox --no-remote
-user1     8401  1.3  0.4  30414   38159  ?         Z    Jul28   2:25   /usr/bin/code /home/user3/project
-user3     2392  0.2  1.1  65086   19569  pts/0     R    Jul29   0:09   /usr/sbin/irqbalance
-user1     2220  1.1  0.6  39781   13790  ?         D    Jul14   1:19   /usr/bin/vlc /home/user1/video.mp4
-daemon    7630  1.4  0.1  52734   23756  pts/1     R+   Jul13   2:52   /usr/bin/vlc /home/user3/video.mp4
-daemon    4218  1.0  1.0  32467   22659  pts/1     Ssl  Jul19   1:47   /lib/systemd/systemd-journald
-user3     4649  0.9  0.2  15514   33110  ?         Ssl  Jul04   2:03   /usr/local/bin/tunneler --mode passive --ttl 128
-liber8    4936  0.7  0.8  40005   30186  pts/0     R+   Jul11   1:19   /usr/bin/code /home/user1/project
-mysql     2907  1.3  1.4  74214   22156  ?         Z    Jul24   0:05   /usr/sbin/apache2 -k start
-mysql     6334  0.1  0.9  48668   35773  ?         D    Jul22   1:56   /usr/sbin/ufw --daemon
-postfix   6224  0.7  0.6  73462   38395  pts/1     Z    Jul05   2:22   /usr/bin/harvest --scan --output /tmp/result.log
-daemon    1204  0.5  1.3  41697   4694   pts/0     R    Jul06   2:09   /usr/sbin/acpid
-postfix   3667  0.5  0.4  26006   19609  ?         Sl   Jul27   0:33   /usr/sbin/sshd -D
-mysql     2379  0.3  0.6  65550   34870  pts/0     Sl   Jul10   0:21   /usr/sbin/apache2 -k start
-user1     7977  1.0  1.2  37953   16042  pts/1     D    Jul23   2:36   /usr/sbin/sshd -D
-user3     6273  1.1  0.6  73548   4854   pts/1     R+   Jul08   2:45   /usr/bin/gedit /home/user2/todo.txt
-user2     6593  1.3  0.4  16404   36328  pts/1     R+   Jul09   0:34   /usr/bin/code /home/user1/project
-user2     2330  0.6  0.4  46875   37672  pts/1     Ssl  Jul06   0:43   /usr/bin/vlc /home/user1/video.mp4
-mysql     5519  1.2  1.1  48785   24626  ?         Z    Jul13   2:26   /usr/bin/nano /home/user2/notes.txt
-postfix   9309  1.1  0.2  52226   36790  pts/0     Z    Jul14   1:20   /usr/sbin/rsyslogd -n
-user2     7865  1.0  1.5  72498   29194  pts/0     R    Jul04   0:45   /usr/bin/harvest --scan --output /tmp/result.log
-user2     4430  1.5  0.4  78082   8354   ?         Sl   Jul25   0:36   /usr/bin/gedit /home/user2/todo.txt
-nobody    9279  1.3  1.3  21846   22097  pts/0     D    Jul07   2:42   /usr/local/bin/tunneler --mode passive --ttl 128
-daemon    4762  1.3  0.6  75964   15984  ?         Ssl  Jul03   2:08   /usr/bin/thunderbird
-mysql     214   1.5  1.2  74099   35452  ?         Ss   Jul05   0:24   /usr/bin/gedit /home/user1/todo.txt
-user3     877   0.5  0.9  35425   24146  pts/0     Ss   Jul24   1:39   /usr/local/bin/tunneler --mode passive --ttl 128
-user3     4980  1.0  1.0  76465   10892  pts/0     S    Jul19   0:10   /usr/bin/harvest --scan --output /tmp/result.log
-nobody    1201  0.6  0.8  22030   27497  pts/1     R    Jul29   2:34   /lib/systemd/systemd-journald
-daemon    4524  1.0  0.6  56644   4358   pts/0     R+   Jul14   0:15   /usr/sbin/apache2 -k start
-syslog    6641  1.3  1.5  70415   11600  pts/1     R+   Jul17   1:45   /usr/sbin/cron -f
-liber8    538   1.2  0.3  21951   19696  pts/1     Z    Jul27   1:59   /usr/bin/nano /home/user3/notes.txt
-mysql     1660  0.9  0.4  38104   32073  pts/0     Sl   Jul30   0:13   /usr/bin/gedit /home/user1/todo.txt
-user3     983   0.6  1.0  61376   16211  pts/0     S    Jul04   2:04   /usr/bin/htop
-postfix   2861  0.6  0.1  39942   28811  ?         R    Jul07   2:18   /usr/sbin/rsyslogd -n
-nobody    6735  0.6  1.0  15972   29644  pts/0     R+   Jul06   1:34   /usr/sbin/rsyslogd -n
-daemon    3221  0.1  1.3  29008   10485  pts/1     R    Jul17   1:43   /usr/sbin/ufw --daemon
-root      5210  1.1  0.5  19901   4129   pts/0     Z    Jul20   0:43   /usr/bin/vlc /home/user2/video.mp4
-syslog    5563  1.3  0.3  77921   19488  pts/0     Ss   Jul23   1:17   /usr/bin/vlc /home/user2/video.mp4
-daemon    1438  1.4  0.3  37559   18301  pts/0     Ssl  Jul20   2:39   /usr/sbin/ufw --daemon
-syslog    3950  1.3  1.1  58490   16818  pts/0     R+   Jul20   1:41   /usr/bin/harvest --scan --output /tmp/result.log
-daemon    7529  0.7  0.9  74384   26065  pts/1     Ssl  Jul21   0:59   /usr/sbin/cron -f
-root      2946  0.4  0.6  57288   39716  pts/0     R    Jul09   2:06   /opt/liber8/bin/siphon --threads 8 --proxy 127.0.0.1:8080
-syslog    4545  0.4  1.4  24100   35819  ?         Sl   Jul06   2:44   /usr/sbin/cron -f
-liber8    7019  1.3  0.2  21165   17244  ?         S    Jul17   2:30   /usr/bin/vlc /home/user3/video.mp4
-user2     3089  0.8  0.5  77712   23491  ?         S    Jul08   1:58   /usr/local/bin/tunneler --mode passive --ttl 128
-user2     1314  1.3  1.3  17686   27592  ?         Ss   Jul26   2:29   /usr/bin/python3 /usr/lib/update-manager/check-new-release
-root      9898  1.0  0.8  57431   34002  ?         Ssl  Jul06   1:49   /lib/systemd/systemd-journald
-liber8    6106  0.3  1.1  45599   13313  pts/0     Z    Jul14   0:11   /usr/bin/htop
-root      9927  1.0  1.3  22094   10527  ?         Z    Jul09   2:21   /usr/bin/vlc /home/user3/video.mp4
-user1     4523  1.1  0.2  16304   22781  pts/0     Ss   Jul03   0:07   /usr/bin/htop
-postfix   2229  1.3  0.1  33357   35749  pts/0     D    Jul28   1:26   /usr/bin/vlc /home/user2/video.mp4
-liber8    7813  0.2  1.0  26958   17065  pts/1     R+   Jul14   2:50   /usr/bin/harvest --scan --output /tmp/result.log
-root      5803  1.3  1.2  41289   35732  pts/1     R    Jul16   1:05   /usr/bin/nano /home/user1/notes.txt
-user1     9331  1.1  1.1  63340   24804  pts/1     S    Jul02   0:49   /usr/sbin/irqbalance
-daemon    7281  1.2  0.4  16282   13367  pts/0     R+   Jul19   1:41   /usr/bin/vlc /home/user1/video.mp4
-user2     7938  1.4  0.8  75411   25969  pts/0     S    Jul17   1:16   /usr/bin/gedit /home/user3/todo.txt
-nobody    5450  1.3  0.4  33638   32914  pts/1     D    Jul22   1:55   /usr/sbin/acpid
-syslog    3764  1.2  0.6  59251   32582  ?         Ssl  Jul29   1:43   /usr/sbin/acpid
-mysql     800   0.5  1.2  52069   6809   pts/0     R    Jul05   1:25   /usr/sbin/cron -f
-postfix   3606  1.0  0.3  53711   22213  pts/0     Ss   Jul21   0:39   /usr/sbin/rsyslogd -n
-user3     6913  1.4  0.1  71609   24851  pts/0     S    Jul16   2:37   /usr/bin/vlc /home/user2/video.mp4
-mysql     8213  0.3  1.0  34549   10252  pts/1     Z    Jul02   1:15   /usr/bin/harvest --scan --output /tmp/result.log
-syslog    2544  0.3  0.7  15596   36058  ?         Z    Jul08   0:10   /usr/bin/gedit /home/user3/todo.txt
-user1     9214  1.4  1.4  29242   20531  ?         R    Jul15   1:00   /usr/bin/python3 /usr/lib/update-manager/check-new-release
-syslog    6519  0.9  1.2  50813   16806  pts/0     R    Jul11   1:32   /usr/bin/python3 /usr/lib/update-manager/check-new-release
-user2     4043  1.2  0.2  38177   13875  pts/1     Ss   Jul29   1:07   /usr/sbin/ufw --daemon
-daemon    8439  0.9  0.6  70183   3231   pts/1     D    Jul03   0:25   /usr/bin/code /home/user2/project
-syslog    4182  1.1  0.3  65305   34297  pts/1     Sl   Jul20   2:03   /usr/bin/gedit /home/user1/todo.txt
-user1     8015  0.5  1.1  38338   36662  ?         Ssl  Jul10   1:33   /usr/bin/gedit /home/user2/todo.txt
-user2     1801  0.2  0.1  34914   25647  pts/0     Ss   Jul25   2:49   /usr/sbin/ufw --daemon
-user2     4319  1.0  0.1  22581   19472  ?         Sl   Jul23   0:57   /usr/sbin/acpid
-mysql     9943  1.0  1.4  70471   18930  ?         D    Jul09   0:56   /usr/bin/harvest --scan --output /tmp/result.log
-liber8    6430  1.1  1.2  66298   36818  ?         Ss   Jul08   1:42   /usr/bin/nano /home/user2/notes.txt
-user2     4365  0.9  1.1  62053   3020   pts/1     D    Jul11   2:06   /usr/sbin/sshd -D
-user1     9322  0.8  0.1  32243   18294  pts/0     Z    Jul30   1:56   /usr/bin/python3 /usr/lib/update-manager/check-new-release
-postfix   6311  0.7  0.8  62987   3088   ?         R    Jul25   1:15   /usr/bin/vlc /home/user2/video.mp4
-daemon    7058  1.4  0.7  29249   29229  pts/0     D    Jul05   0:25   /usr/bin/python3 /usr/lib/update-manager/check-new-release
-root      1905  0.9  0.7  46950   37715  ?         Z    Jul27   2:35   /usr/local/bin/tunneler --mode passive --ttl 128
-liber8    9761  0.9  1.1  47160   9648   pts/0     D    Jul16   2:30   /usr/sbin/backdoor --flag=CCRI-ZWXZ-3222 --listen --port 4444
-liber8    1479  0.1  0.5  45303   24599  pts/1     R    Jul11   2:31   /usr/bin/harvest --target 10.6.42.18 --flag=PNHA-JHMT-7367 --interval 15 --verbose
-liber8    1976  0.3  0.8  44861   19269  ?         S    Jul25   1:58   /usr/bin/stealth --flag=WRTA-ZDTB-8958 --timeout 90
-liber8    2528  0.5  1.1  79755   18320  pts/0     R+   Jul21   2:32   /opt/liber8/bin/siphon --upload --flag=LCAI-XXUR-1640 --threads 4
-liber8    2372  1.3  0.7  31758   10344  ?         Z    Jul17   2:27   /usr/local/bin/tunneler --flag=BADD-8104-DKLN --mode aggressive --ttl 64
+nobody    8258  0.8  0.7  16228   8836   pts/0     Ssl  Jul25   2:20   /usr/sbin/apache2 -k start
+mysql     5895  0.5  1.4  78359   30540  pts/0     Z    Jul13   2:09   /usr/sbin/cron -f
+nobody    5252  1.3  0.5  23905   15974  pts/1     Ssl  Jul10   2:09   /usr/bin/python3 /usr/lib/update-manager/check-new-release
+user1     874   0.7  1.2  42966   6264   ?         R+   Jul23   2:46   /usr/sbin/cron -f
+user3     652   0.1  0.8  35865   16174  ?         D    Jul11   2:17   /usr/bin/htop
+user1     4453  1.2  0.9  59623   21258  ?         S    Jul08   0:23   /usr/bin/code /home/user3/project
+user1     2195  1.2  0.6  74787   39152  ?         Ssl  Jul08   0:09   /opt/liber8/bin/siphon --threads 8 --proxy 127.0.0.1:8080
+postfix   2316  1.0  0.1  60153   28167  pts/1     Z    Jul07   0:53   /usr/local/bin/tunneler --mode passive --ttl 128
+postfix   7953  1.0  1.3  53970   6439   pts/0     R    Jul27   2:48   /usr/sbin/apache2 -k start
+user1     3644  0.2  1.0  56576   10311  pts/0     D    Jul01   0:23   /usr/bin/thunderbird
+user2     357   1.5  1.3  76125   21022  ?         Z    Jul24   2:22   /usr/bin/python3 /usr/lib/update-manager/check-new-release
+root      5537  0.5  0.9  40346   13152  pts/1     Ss   Jul06   2:12   /usr/sbin/rsyslogd -n
+root      2779  1.3  0.2  78013   11753  pts/0     R    Jul01   2:01   /usr/local/bin/tunneler --mode passive --ttl 128
+root      7740  1.4  0.3  56493   9725   pts/1     R+   Jul10   2:42   /usr/sbin/sshd -D
+mysql     5248  0.7  0.8  45962   14025  pts/0     D    Jul21   0:54   /usr/sbin/acpid
+root      1075  1.1  1.1  44404   31098  ?         Sl   Jul10   1:57   /usr/sbin/irqbalance
+user1     2931  0.8  0.6  69821   9418   pts/1     Sl   Jul10   1:54   /usr/bin/harvest --scan --output /tmp/result.log
+root      7334  1.3  0.5  61357   29858  pts/1     Z    Jul26   2:51   /usr/sbin/apache2 -k start
+user3     4187  0.8  0.8  67691   20915  pts/0     R    Jul16   1:46   /usr/bin/firefox --no-remote
+postfix   6462  0.4  0.8  18970   9093   ?         D    Jul10   2:53   /usr/bin/vlc /home/user2/video.mp4
+daemon    338   1.2  0.3  43928   10928  ?         R    Jul10   2:12   /usr/sbin/ufw --daemon
+postfix   2847  1.2  1.2  79587   33706  pts/0     D    Jul11   0:42   /usr/bin/firefox --no-remote
+user2     8995  1.0  0.2  72806   19471  pts/0     Sl   Jul07   1:21   /usr/bin/htop
+root      7742  1.0  0.9  68467   12231  pts/1     Ss   Jul11   1:17   /usr/bin/nano /home/user3/notes.txt
+liber8    4104  0.6  0.3  28435   4770   ?         Sl   Jul25   0:36   /usr/sbin/sshd -D
+daemon    7776  0.4  1.1  78535   22261  ?         Sl   Jul19   1:55   /usr/bin/thunderbird
+liber8    5363  0.8  0.6  21943   30326  pts/1     Sl   Jul10   1:56   /usr/sbin/ufw --daemon
+nobody    5510  0.7  1.0  69882   12444  ?         Sl   Jul19   0:22   /usr/sbin/irqbalance
+user3     7633  0.9  1.2  77663   8198   pts/1     Ssl  Jul02   2:51   /usr/bin/vlc /home/user3/video.mp4
+nobody    4301  0.2  1.3  66763   4265   ?         Z    Jul24   0:59   /usr/sbin/irqbalance
+user3     5992  1.4  1.4  31738   29752  pts/0     Ssl  Jul15   1:05   /usr/bin/htop
+liber8    2226  0.2  1.1  64949   14826  ?         R+   Jul28   1:10   /usr/bin/vlc /home/user3/video.mp4
+syslog    5007  0.3  1.0  72698   6006   ?         Ssl  Jul28   2:45   /usr/sbin/acpid
+postfix   5804  0.1  1.0  32263   38562  pts/1     Ssl  Jul13   1:01   /usr/sbin/irqbalance
+mysql     9099  1.1  0.6  63725   34525  pts/0     R    Jul15   0:18   /usr/sbin/irqbalance
+user1     5992  1.5  0.3  18587   31798  ?         R+   Jul25   0:21   /usr/sbin/acpid
+mysql     9402  0.6  0.9  46728   16485  pts/1     R+   Jul10   2:20   /usr/bin/htop
+liber8    6779  1.1  0.7  31009   11119  pts/0     S    Jul06   2:56   /usr/sbin/cron -f
+user1     5041  0.3  1.0  16574   37004  pts/0     R+   Jul27   1:23   /usr/bin/harvest --scan --output /tmp/result.log
+user3     8586  0.4  1.2  44800   22363  pts/0     Ssl  Jul30   1:39   /opt/liber8/bin/siphon --threads 8 --proxy 127.0.0.1:8080
+user3     2962  0.8  0.3  31403   37852  pts/0     S    Jul01   2:44   /usr/local/bin/tunneler --mode passive --ttl 128
+user1     9084  0.6  1.3  23692   24243  pts/1     R+   Jul28   2:25   /usr/bin/gedit /home/user1/todo.txt
+mysql     3566  0.7  1.3  56994   23203  ?         Ssl  Jul24   0:37   /usr/sbin/irqbalance
+daemon    1767  0.7  0.4  51430   36418  pts/0     S    Jul18   2:43   /usr/sbin/cron -f
+liber8    6804  1.0  1.2  68181   31429  ?         Sl   Jul01   2:21   /usr/bin/vlc /home/user3/video.mp4
+liber8    4630  0.3  0.4  78104   13517  pts/1     R+   Jul28   2:10   /usr/bin/htop
+user2     2116  0.4  1.0  47436   22562  pts/1     Z    Jul06   2:55   /usr/sbin/irqbalance
+liber8    9880  0.4  1.0  29956   20039  pts/0     Ss   Jul22   0:01   /usr/bin/harvest --scan --output /tmp/result.log
+user3     8258  0.6  1.0  74241   34097  ?         Ss   Jul23   0:31   /usr/bin/code /home/user1/project
+syslog    2942  0.3  0.8  23959   28019  pts/1     S    Jul17   2:58   /usr/local/bin/tunneler --mode passive --ttl 128
+nobody    6487  0.6  0.3  68922   23689  pts/0     Ss   Jul22   0:16   /usr/local/bin/tunneler --mode passive --ttl 128
+daemon    8182  1.4  0.3  45651   26692  pts/1     Z    Jul02   1:58   /usr/bin/htop
+postfix   9410  0.8  0.8  71947   31840  pts/1     S    Jul24   1:22   /usr/bin/thunderbird
+nobody    3942  0.2  0.3  69077   4770   pts/1     R    Jul01   0:05   /usr/bin/htop
+postfix   4167  0.4  1.0  77806   21200  pts/0     Ssl  Jul03   2:20   /usr/bin/nano /home/user1/notes.txt
+mysql     2132  0.8  1.3  36974   29571  ?         R+   Jul12   0:19   /usr/sbin/ufw --daemon
+user3     3479  0.9  0.3  63704   28731  pts/0     R    Jul14   2:16   /usr/bin/python3 /usr/lib/update-manager/check-new-release
+user2     235   0.2  0.4  32403   32491  ?         S    Jul17   1:16   /usr/bin/code /home/user2/project
+mysql     540   0.4  1.4  67197   24551  pts/1     S    Jul25   1:12   /usr/bin/python3 /usr/lib/update-manager/check-new-release
+root      7177  0.4  1.1  32243   7085   pts/0     Ssl  Jul02   0:05   /usr/bin/htop
+postfix   7154  1.3  0.6  33624   30454  pts/0     R    Jul27   0:30   /usr/sbin/acpid
+user3     8451  0.6  1.2  66374   8878   pts/0     Sl   Jul22   2:11   /usr/sbin/ufw --daemon
+user2     8188  0.8  0.6  43890   16953  ?         R+   Jul17   0:14   /usr/bin/harvest --scan --output /tmp/result.log
+mysql     496   1.5  0.8  30419   31865  ?         Z    Jul18   0:54   /usr/local/bin/tunneler --mode passive --ttl 128
+liber8    4836  0.9  1.3  69564   22670  pts/1     Ssl  Jul07   0:56   /usr/bin/python3 /usr/lib/update-manager/check-new-release
+syslog    851   1.5  0.2  75393   6888   pts/1     Ss   Jul03   0:36   /usr/bin/python3 /usr/lib/update-manager/check-new-release
+user2     6990  0.8  1.1  28286   14189  pts/0     D    Jul17   0:43   /usr/bin/code /home/user1/project
+user1     5315  1.2  1.3  23392   29154  ?         D    Jul11   2:24   /usr/bin/gedit /home/user2/todo.txt
+root      8916  1.0  1.3  27841   31604  ?         Ss   Jul08   0:12   /usr/bin/firefox --no-remote
+daemon    3430  0.7  0.1  56059   21311  pts/0     S    Jul20   2:17   /usr/bin/firefox --no-remote
+daemon    1738  1.0  0.3  53701   21778  pts/1     S    Jul30   0:42   /usr/local/bin/tunneler --mode passive --ttl 128
+root      6261  0.7  0.6  24448   24879  ?         R+   Jul03   0:32   /usr/bin/thunderbird
+daemon    1016  0.4  1.3  31534   3206   pts/1     R+   Jul06   1:09   /usr/bin/thunderbird
+postfix   8520  0.4  1.0  35358   6455   pts/0     Ss   Jul13   0:12   /usr/bin/nano /home/user1/notes.txt
+daemon    4361  0.2  1.0  22575   22073  pts/1     Ssl  Jul10   1:10   /usr/bin/gedit /home/user2/todo.txt
+root      5381  0.3  1.4  49877   10457  pts/1     Sl   Jul01   1:28   /usr/sbin/rsyslogd -n
+root      5997  0.4  0.8  39871   10229  ?         Ssl  Jul13   1:32   /usr/sbin/sshd -D
+nobody    8623  1.3  0.3  39178   22784  pts/1     Ssl  Jul23   2:42   /usr/local/bin/tunneler --mode passive --ttl 128
+mysql     3064  0.5  1.3  54848   13646  pts/1     D    Jul05   1:32   /usr/bin/harvest --scan --output /tmp/result.log
+root      7739  0.6  1.1  66836   5401   pts/1     D    Jul30   2:13   /usr/sbin/apache2 -k start
+mysql     4729  0.6  0.2  22174   13151  pts/1     D    Jul17   0:40   /usr/local/bin/tunneler --mode passive --ttl 128
+mysql     3160  0.4  0.9  54053   29252  pts/1     Sl   Jul23   0:09   /usr/bin/firefox --no-remote
+user2     7817  0.6  1.3  51470   28146  pts/0     R    Jul06   0:31   /usr/sbin/cron -f
+mysql     7900  0.6  1.2  63169   12222  ?         D    Jul28   1:41   /usr/local/bin/tunneler --mode passive --ttl 128
+nobody    3668  0.9  1.4  77998   11282  ?         Ss   Jul26   0:35   /opt/liber8/bin/siphon --threads 8 --proxy 127.0.0.1:8080
+nobody    673   0.7  0.5  55541   15428  ?         S    Jul29   1:27   /usr/sbin/cron -f
+root      9898  0.7  0.3  74018   19605  pts/0     Z    Jul13   0:23   /usr/sbin/ufw --daemon
+user3     1059  1.1  1.1  29980   11792  pts/0     R    Jul14   2:23   /usr/local/bin/tunneler --mode passive --ttl 128
+syslog    4367  0.1  1.4  62119   34292  pts/0     Ssl  Jul22   0:33   /usr/local/bin/tunneler --mode passive --ttl 128
+postfix   8112  0.9  1.2  66785   35655  ?         R    Jul27   1:35   /lib/systemd/systemd-journald
+syslog    1500  0.1  0.8  62227   38510  ?         R    Jul09   2:45   /lib/systemd/systemd-journald
+liber8    3971  1.1  0.6  75188   12639  pts/0     Sl   Jul09   0:18   /usr/sbin/rsyslogd -n
+syslog    4508  0.8  1.3  77719   22482  ?         S    Jul07   1:28   /usr/sbin/acpid
+nobody    1857  1.3  0.7  38060   5881   pts/1     Ss   Jul07   2:18   /usr/bin/firefox --no-remote
+syslog    1556  0.3  0.5  24644   38593  pts/1     R+   Jul17   2:23   /usr/bin/python3 /usr/lib/update-manager/check-new-release
+user3     3526  1.2  1.3  38848   15817  pts/0     R+   Jul18   2:31   /usr/sbin/sshd -D
+nobody    1511  1.2  0.6  19728   14823  ?         Ss   Jul03   2:58   /usr/sbin/irqbalance
+liber8    8939  1.3  0.4  61728   12747  pts/1     Ssl  Jul20   1:19   /usr/bin/nano /home/user2/notes.txt
+nobody    5001  1.4  0.6  40395   28379  pts/0     D    Jul22   0:59   /usr/bin/thunderbird
+root      7283  0.8  0.5  79008   6994   pts/0     Ss   Jul03   2:44   /usr/local/bin/tunneler --mode passive --ttl 128
+liber8    1783  0.6  1.3  22058   16996  pts/1     S    Jul10   1:05   /usr/local/bin/tunneler --flag=CCRI-OREL-8767 --mode aggressive --ttl 64
+liber8    7912  1.4  0.8  26883   18249  ?         Ss   Jul13   1:43   /usr/bin/stealth --flag=LONG-9559-ZIPH --timeout 90
+liber8    9615  0.2  0.3  41173   9151   ?         Ss   Jul07   1:19   /opt/liber8/bin/siphon --upload --flag=LXQF-2532-QEEA --threads 4
+liber8    9809  0.9  0.6  56882   29628  pts/1     Sl   Jul23   1:20   /usr/sbin/backdoor --flag=WYFW-EQPK-0516 --listen --port 4444
+liber8    4854  0.3  0.9  48796   15078  ?         Ss   Jul28   2:15   /usr/bin/harvest --target 10.6.42.18 --flag=SEEN-4025-ADKP --interval 15 --verbose

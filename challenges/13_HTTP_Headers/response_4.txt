@@ -1,14 +1,20 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:52:17 GMT
-Server: Apache/2.4.54 (Ubuntu)
+Date: Sun, 30 Jun 2025 15:57:29 GMT
+Server: Liber8-Server/2.3.1
 Content-Type: text/plain; charset=UTF-8
-Cache-Control: no-store
-X-Powered-By: PHP/8.1.12
-X-Flag: CBDV-HGSY-0120
+Cache-Control: private, no-cache
+X-Powered-By: Node.js/18.16.0
+X-Flag: YXSU-0297-PTZL
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
+Set-Cookie: sessionid=1vpcgxqiua2l; HttpOnly; Secure
 
-Welcome to the Liber8 data endpoint.
-This endpoint returns plain text responses.
+<html>
+  <head><title>Data Service</title></head>
+  <body>
+    <h1>Data Service Ready</h1>
+    <p>Connect your client application to begin.</p>
+  </body>
+</html>
 
-<!-- Debug: Session created for client 10.6.112.3 -->
+<!-- Debug: API response size 512 bytes -->

@@ -50,8 +50,16 @@ def find_ccri_flag(text):
 
 def main():
     project_root = find_project_root()
-    cipher_file = os.path.join(project_root, "challenges", "04_Vigenere", "cipher.txt")
-    output_file = os.path.join(project_root, "challenges", "04_Vigenere", "decoded_output.txt")
+
+    # Detect sandboxed validation folder
+    if validation_mode:
+        cwd = os.getcwd()
+        cipher_file = os.path.join(cwd, "cipher.txt")
+        output_file = os.path.join(cwd, "decoded_output.txt")
+    else:
+        challenge_folder = os.path.join(project_root, "challenges", "04_Vigenere")
+        cipher_file = os.path.join(challenge_folder, "cipher.txt")
+        output_file = os.path.join(challenge_folder, "decoded_output.txt")
 
     # === Validation Mode: Silent flag check ===
     if validation_mode:
@@ -74,7 +82,7 @@ def main():
             ciphertext = f.read()
         plaintext = vigenere_decrypt(ciphertext, keyword)
 
-        # Save the plaintext
+        # Save the plaintext in the sandbox folder
         with open(output_file, "w", encoding="utf-8") as f_out:
             f_out.write(plaintext + "\n")
 

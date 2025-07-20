@@ -1,7 +1,8 @@
-last_modified=2019-08-12
+BIGV-HZPT-2685
+enable_logging=true
+enable_logging=true
+user=guest
 enable_logging=true
 last_modified=2019-08-12
-# [No sensitive data found here]
+last_modified=2019-08-12
 # Legacy configuration file
-user=guest
-user=guest

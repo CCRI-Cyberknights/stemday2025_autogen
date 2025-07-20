@@ -119,7 +119,7 @@ part2 = {part2}
 # MATH ERROR!
 code = part1 {wrong_op} part2  # <- wrong math
 
-print(f"Your flag is: CCRI-SCRP-{{int(code)}}")
+print(f\"Your flag is: CCRI-SCRP-{{int(code)}}\")
 """
 
             script_path.write_text(broken_script)
@@ -128,10 +128,11 @@ print(f"Your flag is: CCRI-SCRP-{{int(code)}}")
             print(f"📝 broken_flag.py created: {script_path.relative_to(self.project_root)}")
             print(f"✅ Correct op = {correct_op}, Broken op = {wrong_op}, Flag = CCRI-SCRP-{suffix_value}")
 
-            # Record unlock metadata
+            # Record unlock metadata with correct operator
             self.metadata = {
                 "real_flag": f"CCRI-SCRP-{suffix_value}",
                 "challenge_file": str(script_path.relative_to(self.project_root)),
+                "correct_operator": correct_op,
                 "unlock_method": "Fix the Python script’s math operator to calculate the flag",
                 "hint": "Look for the broken operator in broken_flag.py and correct it."
             }

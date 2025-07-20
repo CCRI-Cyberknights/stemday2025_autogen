@@ -18,7 +18,7 @@ def find_project_root():
     sys.exit(1)
 
 def kill_processes_by_pattern(pattern):
-    """Find and kill processes matching a pattern."""
+    """Find and kill processes matching a pattern (no prompt)."""
     try:
         result = subprocess.run(
             ["pgrep", "-f", pattern],
@@ -29,16 +29,12 @@ def kill_processes_by_pattern(pattern):
         pids = result.stdout.strip().splitlines()
         if pids:
             print(f"⚠️ Found matching process(es): {' '.join(pids)}")
-            confirm = input("❓ Kill these processes? [y/N]: ").strip().lower()
-            if confirm == "y":
-                for pid in pids:
-                    try:
-                        os.kill(int(pid), signal.SIGKILL)
-                        print(f"✅ Killed process {pid}.")
-                    except ProcessLookupError:
-                        print(f"⚠️ Process {pid} already stopped.")
-            else:
-                print("🚫 Skipping process kill.")
+            for pid in pids:
+                try:
+                    os.kill(int(pid), signal.SIGKILL)
+                    print(f"✅ Killed process {pid}.")
+                except ProcessLookupError:
+                    print(f"⚠️ Process {pid} already stopped.")
         else:
             print(f"⚠️ No processes found matching: {pattern}")
     except FileNotFoundError:
@@ -47,7 +43,7 @@ def kill_processes_by_pattern(pattern):
         print(f"❌ ERROR killing processes: {e}")
 
 def clear_port(port):
-    """Kill any process listening on a given port."""
+    """Kill any process listening on a given port (no prompt)."""
     if not shutil.which("lsof"):
         print("⚠️ WARNING: 'lsof' not found. Skipping port cleanup.")
         return
@@ -77,23 +73,18 @@ def main():
     print("🛑 Stopping CCRI CTF Hub...\n")
     project_root = find_project_root()
 
-    # Detect mode
-    if os.path.isdir(os.path.join(project_root, "web_version_admin")):
-        print("🛠️ Admin/Dev environment detected (web_version_admin found).\n")
-        print("Which mode do you want to stop?")
-        print("1) 🛠️ Admin Mode")
-        print("2) 🎓 Student Mode\n")
-        mode_choice = input("Enter choice [1-2]: ").strip()
-        if mode_choice == "1":
-            server_file = os.path.join(project_root, "web_version_admin", "server.py")
-        elif mode_choice == "2":
-            server_file = os.path.join(project_root, "web_version", "server.pyc")
-        else:
-            print("❌ Invalid choice. Exiting.")
-            sys.exit(1)
-    else:
-        print("🎓 Student environment detected (web_version_admin not found).")
+    # Prompt user to select mode
+    print("Which server do you want to stop?")
+    print("1) 🛠️ Admin Server")
+    print("2) 🎓 Student Server\n")
+    mode_choice = input("Enter choice [1-2]: ").strip()
+    if mode_choice == "1":
+        server_file = os.path.join(project_root, "web_version_admin", "server.py")
+    elif mode_choice == "2":
         server_file = os.path.join(project_root, "web_version", "server.pyc")
+    else:
+        print("❌ Invalid choice. Exiting.")
+        sys.exit(1)
 
     # Stop Flask server
     print("🔍 Searching for running Flask server processes...")
