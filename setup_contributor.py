@@ -2,11 +2,12 @@
 import os
 import sys
 import subprocess
+import platform
 
-# === 🌟 CCRI CyberKnights Contributor Setup Script ===
+# === 🌟 CCRI CyberKnights Full Environment Setup ===
 
 def run(cmd, check=True):
-    """Run a system command."""
+    """Run a system command and print output."""
     print(f"💻 Running: {cmd}")
     result = subprocess.run(cmd, shell=True)
     if check and result.returncode != 0:
@@ -44,26 +45,31 @@ def configure_git():
         print("✅ Git configuration saved.")
 
 def main():
-    print("\n🚀 Setting up your STEMDay_2025 contributor environment...")
+    print("\n🚀 Setting up your CCRI_CTF contributor environment...")
     print("=" * 60 + "\n")
 
-    # Install system dependencies
+    # === Install system dependencies ===
     apt_packages = [
-        "git", "python3", "python3-pip", "python3-venv",
+        # Essential tools
+        "git", "python3", "python3-pip", "python3-venv", "gcc", "build-essential",
+        # Python libraries (system side)
         "python3-markdown", "python3-scapy",
+        # Challenge tools
         "exiftool", "zbar-tools", "steghide", "hashcat", "unzip",
         "nmap", "tshark", "qrencode", "xdg-utils", "lsof", "vim-common", "util-linux"
     ]
     apt_install(apt_packages)
 
-    # Install Python packages
-    pip_packages = ["flask"]
+    # === Install Python libraries ===
+    pip_packages = [
+        "flask", "markupsafe"
+    ]
     pip_install(pip_packages)
 
-    # Configure Git
+    # === Configure Git ===
     configure_git()
 
-    print("\n🎉 Setup complete! You are now ready to clone the repo!")
+    print("\n🎉 Setup complete! You are now ready to contribute to the CCRI CTF project.")
 
 if __name__ == "__main__":
     if os.geteuid() != 0:

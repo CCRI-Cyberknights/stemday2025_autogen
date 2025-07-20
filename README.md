@@ -19,12 +19,6 @@ The student VM uses the **Home Edition**, but you can test with the full **Secur
 To set up the admin environment and clone this repository, run:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/CCRI-Cyberknights/stemday_2025/main/setup_contributor.sh)
-```
-
-➡️ **(Python alternative):**
-
-```bash
 curl -fsSL https://raw.githubusercontent.com/CCRI-Cyberknights/stemday_2025/main/setup_contributor.py | python3 -
 ```
 
@@ -73,7 +67,7 @@ To build and distribute the student-facing CTF experience:
 
    ```bash
    cd stemday_2025/web_version_admin/create_website
-   ./build_web_version.sh
+   ./build_web_version.py
    ```
 
    This obfuscates the flags and builds the student web portal in `stemday_2025/web_version/`.
@@ -95,7 +89,7 @@ To build and distribute the student-facing CTF experience:
 
   ```bash
   cd stemday_2025/web_version_admin/create_website
-  ./build_web_version.sh
+  ./build_web_version.py
   ```
 
 * **Test in folder mode and web portal mode** before distributing.
