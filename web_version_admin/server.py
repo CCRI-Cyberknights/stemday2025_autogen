@@ -236,11 +236,11 @@ def run_script(challenge_id):
 
 # === Simulated Open Ports (Realistic Nmap Network) ===
 FAKE_FLAGS = {
-    8077: "CCRI-AIDH-7245",       # ✅ REAL FLAG
-    8022: "BGUX-DLWR-6699",       # fake
-    8071: "WSGP-5984-BXGL",       # fake
-    8076: "RPSY-0260-AXSJ",       # fake
-    8064: "JZDQ-6578-RGGA",       # fake
+    8084: "CCRI-PRFH-9621",       # ✅ REAL FLAG
+    8065: "MJHV-JAXM-8336",       # fake
+    8056: "UBPR-GPBN-2255",       # fake
+    8077: "MLEQ-3966-XWTW",       # fake
+    8001: "CDNB-NQMT-9767",       # fake
 }
 
 JUNK_RESPONSES = {
@@ -285,19 +285,22 @@ SERVICE_NAMES = {
 }
 
 SERVICE_NAMES.update({
-    8077: "delta-sync",
-    8022: "configd",
-    8071: "alpha-core",
-    8076: "update-agent",
-    8064: "beta-hub",
-    8079: "lambda-api",
-    8082: "auth-service",
-    8028: "sysmon-api",
-    8033: "epsilon-sync",
-    8019: "omega-stream",
-    8012: "zeta-cache",
-    8010: "metricsd",
-    8004: "delta-proxy"
+    8084: "metricsd",
+    8065: "gamma-relay",
+    8056: "delta-sync",
+    8077: "lambda-api",
+    8001: "omega-stream",
+    8057: "alpha-core",
+    8023: "sysmon-api",
+    8088: "epsilon-sync",
+    8063: "configd",
+    8016: "auth-service",
+    8025: "delta-proxy",
+    8079: "kappa-node",
+    8068: "zeta-cache",
+    8053: "theta-daemon",
+    8086: "update-agent",
+    8002: "beta-hub"
 })
 
 ALL_PORTS = {**JUNK_RESPONSES, **FAKE_FLAGS}

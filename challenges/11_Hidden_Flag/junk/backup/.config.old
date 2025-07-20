@@ -1,10 +1,8 @@
-# legacy backup configuration
-
-kernel=5.3.0-xx
-logrotate=monthly
-last_good_boot=2022-11-10
-
-FLAG: HIDE-9991-CODE
-
-[END CONFIG]
-
+user=guest
+# [No sensitive data found here]
+last_modified=2019-08-12
+user=guest
+enable_logging=true
+last_modified=2019-08-12
+last_modified=2019-08-12
+# Legacy configuration file

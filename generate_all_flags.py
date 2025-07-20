@@ -134,7 +134,7 @@ class FlagGenerationManager:
                 fail_count += 1
 
         if not self.dry_run:
-            self.challenge_list.save()
+            self.challenge_list.save_challenges()
             print("🎉 All flags generated and challenges.json updated.")
 
         print(f"\n📊 Summary: {success_count} successful | {fail_count} failed")

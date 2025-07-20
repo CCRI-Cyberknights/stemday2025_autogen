@@ -1,4 +1,6 @@
-sysdump version: 0.8
-recovered 4 files
-integrity: unknown
-
+### System Memory Dump ###
+ADJD-5553-FNVR
+Heap analysis: no anomalies detected.
+Heap analysis: no anomalies detected.
+Heap analysis: no anomalies detected.
+Heap analysis: no anomalies detected.

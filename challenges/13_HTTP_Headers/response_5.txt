@@ -1,11 +1,12 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:45:18 GMT
+Date: Sun, 30 Jun 2025 15:46:28 GMT
 Server: Liber8-Server/2.3.1
 Content-Type: text/html; charset=UTF-8
-Cache-Control: no-store
-X-Powered-By: Go HTTP Server/1.19
-X-Flag: HACK-6633-PROT
+Cache-Control: private, no-cache
+X-Powered-By: ASP.NET Core/7.0
+X-Flag: QKQF-PDZH-4156
 X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
 
 <html>
   <head><title>Data Service</title></head>
@@ -15,5 +16,4 @@ X-Frame-Options: SAMEORIGIN
   </body>
 </html>
 
-<!-- Debug: Session created for client 10.6.112.3 -->
-
+<!-- Debug: Temporary caching enabled -->

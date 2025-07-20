@@ -1,14 +1,15 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:45:12 GMT
-Server: Liber8-Server/2.3.1
-Content-Type: text/plain; charset=UTF-8
-Cache-Control: public, max-age=86400
+Date: Sun, 30 Jun 2025 15:45:33 GMT
+Server: Go HTTP Server/1.19
+Content-Type: text/html; charset=UTF-8
+Cache-Control: no-store
 X-Powered-By: Python/3.11.4
-X-Flag: RESP-1290-CTFX
-X-Frame-Options: DENY
+X-Flag: RSQQ-OLKI-1331
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Set-Cookie: sessionid=kkg4x7s2mnia; HttpOnly; Secure
 
 Welcome to the Liber8 data endpoint.
 This endpoint returns plain text responses.
 
-<!-- Developer Debug: X-Flag header injected for testing -->
-
+<!-- Debug: Session created for client 10.6.112.3 -->

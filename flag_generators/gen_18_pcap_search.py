@@ -107,14 +107,10 @@ class PcapSearchFlagGenerator:
         # Shuffle packets for realism
         random.shuffle(packets)
 
-        # Write PCAP
+        # Write PCAP (overwrites if exists)
         output_file = challenge_folder / "traffic.pcap"
-        if output_file.exists():
-            backup_file = output_file.with_suffix(".pcap.bak")
-            output_file.rename(backup_file)
-            print(f"📂 Existing traffic.pcap backed up as {backup_file.name}")
-
         wrpcap(str(output_file), packets)
+
         print(f"✅ traffic.pcap created: {output_file.relative_to(self.project_root)}")
         print(f"   🏁 Real flag: {real_flag}")
         print(f"   🎭 Fake flags: {', '.join(fake_flags)}")

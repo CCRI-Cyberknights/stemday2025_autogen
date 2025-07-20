@@ -1,22 +1,20 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:45:03 GMT
+Date: Sun, 30 Jun 2025 15:51:41 GMT
 Server: Liber8-Server/2.3.1
 Content-Type: text/html; charset=UTF-8
-Cache-Control: private, no-cache
-X-Powered-By: ASP.NET Core/7.0
-Set-Cookie: auth_token=abc123xyz; HttpOnly; Secure
-X-Flag: CCRI-HEAD-7362
-X-Frame-Options: DENY
+Cache-Control: public, max-age=86400
+X-Powered-By: Python/3.11.4
+X-Flag: HIKQ-XMCL-4463
+X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
+Set-Cookie: sessionid=dgsyucjcfb7n; HttpOnly; Secure
 
 <html>
-  <head><title>Internal Dashboard</title></head>
+  <head><title>Liber8 Portal</title></head>
   <body>
-    <h1>Liber8 Ops Dashboard</h1>
-    <p>Authentication successful. Redirecting...</p>
+    <h1>Welcome to Liber8</h1>
+    <p>System maintenance is underway. Some services may be unavailable.</p>
   </body>
 </html>
 
-<!-- Debug: Flag integrity verified -->
-<!-- To-do: Update security headers on staging -->
-
+<!-- Debug: Session created for client 10.6.112.3 -->

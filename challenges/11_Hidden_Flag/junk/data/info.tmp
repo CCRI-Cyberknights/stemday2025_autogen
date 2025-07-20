@@ -1,4 +1,8 @@
-TEMP=TRUE
-SOURCE=/mnt/data0
-BUNDLE=active
-
+[INFO BLOCK]
+# [No sensitive data found here]
+User: ccri_admin
+User: ccri_admin
+Temporary cache: active
+User: ccri_admin
+User: ccri_admin
+User: ccri_admin

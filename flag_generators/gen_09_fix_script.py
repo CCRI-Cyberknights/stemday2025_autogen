@@ -9,7 +9,7 @@ from flag_generators.flag_helpers import FlagUtils
 class FixScriptFlagGenerator:
     """
     Generator for the Fix the Script challenge.
-    Embeds the real flag into a Bash script with a broken operator.
+    Embeds the real flag into a Python script with a broken operator.
     """
     ALL_OPERATORS = ["+", "-", "*", "/"]
 
@@ -81,9 +81,9 @@ class FixScriptFlagGenerator:
 
     def embed_flag(self, challenge_folder: Path, suffix_value: int, correct_op: str, part1: int, part2: int, overwrite=False):
         """
-        Create broken_flag.sh with randomized incorrect operator.
+        Create broken_flag.py with randomized incorrect operator.
         """
-        script_path = challenge_folder / "broken_flag.sh"
+        script_path = challenge_folder / "broken_flag.py"
 
         try:
             challenge_folder.mkdir(parents=True, exist_ok=True)
@@ -95,24 +95,24 @@ class FixScriptFlagGenerator:
             wrong_ops = [op for op in self.ALL_OPERATORS if op != correct_op]
             wrong_op = random.choice(wrong_ops)
 
-            broken_script = f"""#!/bin/bash
+            broken_script = f"""#!/usr/bin/env python3
 
-# This script should output: CCRI-SCRP-{suffix_value}
+# This script should print: CCRI-SCRP-{suffix_value}
 # But someone broke the math!
 
-part1={part1}
-part2={part2}
+part1 = {part1}
+part2 = {part2}
 
 # MATH ERROR!
-code=$((part1 {wrong_op} part2))  # <- wrong math
+code = part1 {wrong_op} part2  # <- wrong math
 
-echo "Your flag is: CCRI-SCRP-$code"
+print(f"Your flag is: CCRI-SCRP-{{int(code)}}")
 """
 
             script_path.write_text(broken_script)
             script_path.chmod(0o755)
 
-            print(f"📝 broken_flag.sh created: {script_path.relative_to(self.project_root)}")
+            print(f"📝 broken_flag.py created: {script_path.relative_to(self.project_root)}")
             print(f"✅ Correct op = {correct_op}, Broken op = {wrong_op}, Flag = CCRI-SCRP-{suffix_value}")
 
         except Exception as e:
@@ -121,7 +121,7 @@ echo "Your flag is: CCRI-SCRP-$code"
 
     def generate_flag(self, challenge_folder: Path, overwrite=False) -> str:
         """
-        Generate a real flag and embed it into broken_flag.sh.
+        Generate a real flag and embed it into broken_flag.py.
         """
         correct_op, part1, part2, suffix_value = self.find_safe_parts_and_operator()
         self.embed_flag(challenge_folder, suffix_value, correct_op, part1, part2, overwrite=overwrite)
