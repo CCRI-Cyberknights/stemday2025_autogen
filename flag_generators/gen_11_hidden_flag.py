@@ -11,7 +11,9 @@ class HiddenFlagGenerator:
     """
     Generator for the Hidden Flag challenge.
     Builds a fake folder structure and hides real + fake flags in random files.
+    Stores unlock metadata for validation workflow.
     """
+
     FOLDERS_AND_FILES = {
         "backup": ["sysdump.bak", ".config.old"],
         "data": ["info.tmp", ".hint_file", ".summary"],
@@ -77,6 +79,7 @@ class HiddenFlagGenerator:
 
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -131,7 +134,6 @@ class HiddenFlagGenerator:
         real_flag_file = flag_files[0]
         fake_flag_files = flag_files[1:]
 
-        # ✅ Print fake flags before popping them
         print(f"🎭 Fake flags: {', '.join(fake_flags)}")
 
         for file_path in all_files:
@@ -149,6 +151,14 @@ class HiddenFlagGenerator:
 
         print(f"✅ Real flag hidden in: {real_flag_file.relative_to(base_dir)}")
         print("📁 Folder structure created with embedded flags.")
+
+        # Record unlock metadata
+        self.metadata = {
+            "real_flag": real_flag,
+            "challenge_folder": str(base_dir.relative_to(self.project_root)),
+            "unlock_method": "Search recursively for the flag in hidden files",
+            "hint": "Use grep -R or find/strings to locate the flag in junk/"
+        }
 
     def generate_flag(self, challenge_folder: Path) -> str:
         """

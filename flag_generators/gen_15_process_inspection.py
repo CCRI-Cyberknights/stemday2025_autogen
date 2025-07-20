@@ -10,6 +10,7 @@ class ProcessInspectionFlagGenerator:
     """
     Generator for the Process Inspection challenge.
     Produces ps_dump.txt with fake and real flags in process listings.
+    Stores unlock metadata for validation workflow.
     """
 
     USERS = ["root", "user1", "user2", "user3", "daemon", "syslog", "mysql", "postfix", "nobody", "liber8"]
@@ -38,6 +39,7 @@ class ProcessInspectionFlagGenerator:
 
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -116,8 +118,16 @@ class ProcessInspectionFlagGenerator:
             # Write output
             dump_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-            print(f"🎭 Fake flags: {', '.join(fake_flags)}")  # <-- Added this print
+            print(f"🎭 Fake flags: {', '.join(fake_flags)}")
             print(f"✅ ps_dump.txt created in {challenge_folder.relative_to(self.project_root)} (real flag: {real_flag})")
+
+            # Record unlock metadata
+            self.metadata = {
+                "real_flag": real_flag,
+                "challenge_file": str(dump_file.relative_to(self.project_root)),
+                "unlock_method": "Inspect ps_dump.txt for flags embedded in process commands",
+                "hint": "Use grep to search for flags in ps_dump.txt"
+            }
 
         except Exception as e:
             print(f"❌ Error writing ps_dump.txt: {e}", file=sys.stderr)

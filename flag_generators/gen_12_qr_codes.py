@@ -11,10 +11,12 @@ class QRCodeFlagGenerator:
     """
     Generator for the QR Codes challenge.
     Produces 5 QR code PNGs in the challenge folder with 1 real flag and 4 decoys.
+    Stores unlock metadata for validation workflow.
     """
 
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -66,7 +68,7 @@ class QRCodeFlagGenerator:
         all_flags = fake_flags + [real_flag]
         random.shuffle(all_flags)
 
-        print(f"🎭 Fake flags: {', '.join(fake_flags)}")  # <-- Added printout of fake flags
+        print(f"🎭 Fake flags: {', '.join(fake_flags)}")
 
         print(f"🎯 Generating QR codes in: {challenge_folder.relative_to(self.project_root)}")
         for i, flag in enumerate(all_flags, start=1):
@@ -76,6 +78,14 @@ class QRCodeFlagGenerator:
                 print(f"✅ {qr_file.name} (REAL flag)")
             else:
                 print(f"➖ {qr_file.name} (decoy)")
+
+        # Record unlock metadata
+        self.metadata = {
+            "real_flag": real_flag,
+            "challenge_folder": str(challenge_folder.relative_to(self.project_root)),
+            "unlock_method": "Scan QR codes to reveal flags and find the real one",
+            "hint": "Use a QR scanner app or zbarimg to read qr_*.png"
+        }
 
     def generate_flag(self, challenge_folder: Path) -> str:
         """

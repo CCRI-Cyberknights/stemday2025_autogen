@@ -12,11 +12,14 @@ class MetadataFlagGenerator:
     """
     Generator for the Metadata challenge.
     Embeds real and fake flags into the EXIF metadata of capybara.jpg.
+    Stores unlock metadata for validation workflow.
     """
+
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
         self.generator_dir = Path(__file__).parent.resolve()
         self.source_image = self.generator_dir / "capybara.jpg"
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -90,9 +93,16 @@ class MetadataFlagGenerator:
             except Exception as e:
                 print(f"⚠️ Could not remove backup file: {e}", file=sys.stderr)
 
-        # === Print dry-run info ===
         print(f"🎭 Fake flags: {', '.join(fake_flags)}")
         print(f"✅ Embedded real flag in UserComment: {real_flag}")
+
+        # === Record unlock metadata ===
+        self.metadata = {
+            "real_flag": real_flag,
+            "challenge_file": str(dest_image.relative_to(self.project_root)),
+            "unlock_method": "Inspect EXIF metadata of capybara.jpg to find the flag",
+            "hint": "Use exiftool or exifread to view metadata tags."
+        }
 
     def generate_flag(self, challenge_folder: Path) -> str:
         """
@@ -101,11 +111,17 @@ class MetadataFlagGenerator:
         """
         real_flag = FlagUtils.generate_real_flag().replace("CCRI-", "CCRI-META-")
 
-        # Generate unique fake flags
+        # === Generate unique fake flags safely ===
         fake_flags = set()
+        attempts = 0
         while len(fake_flags) < 4:
             fake = FlagUtils.generate_fake_flag().replace("CCRI-", "FAKE-")
-            fake_flags.add(fake)
+            if fake != real_flag:
+                fake_flags.add(fake)
+            attempts += 1
+            if attempts > 1000:
+                raise RuntimeError("❌ Too many attempts generating unique fake flags.")
+        fake_flags = list(fake_flags)
 
-        self.embed_flags(challenge_folder, real_flag, list(fake_flags))
+        self.embed_flags(challenge_folder, real_flag, fake_flags)
         return real_flag

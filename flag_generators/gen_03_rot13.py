@@ -12,9 +12,12 @@ class ROT13FlagGenerator:
     """
     Generator for the ROT13 cipher challenge.
     Encodes an entire intercepted message (including flags) into cipher.txt.
+    Stores unlock metadata for validation workflow.
     """
+
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -94,6 +97,14 @@ class ROT13FlagGenerator:
             # Write to cipher.txt
             cipher_file.write_text(encoded_message)
             print(f"📝 {cipher_file.relative_to(self.project_root)} created with ROT13-encoded transmission.")
+
+            # Record unlock metadata (no password, but for structure consistency)
+            self.metadata = {
+                "real_flag": real_flag,
+                "challenge_file": str(cipher_file.relative_to(self.project_root)),
+                "unlock_method": "ROT13 decode",
+                "hint": "Apply ROT13 to cipher.txt to recover plaintext."
+            }
 
         except PermissionError:
             print(f"❌ Permission denied: Cannot write to {cipher_file.relative_to(self.project_root)}")

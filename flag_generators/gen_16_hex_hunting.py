@@ -10,10 +10,12 @@ class HexHuntingFlagGenerator:
     """
     Generator for the Hex Hunting challenge.
     Embeds real and fake flags in a random binary file.
+    Stores unlock metadata for validation workflow.
     """
 
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -67,6 +69,14 @@ class HexHuntingFlagGenerator:
         print(f"✅ hex_flag.bin generated in {challenge_folder.relative_to(self.project_root)}")
         print(f"   🏁 Real flag: {real_flag}")
         print(f"   🎭 Fake flags: {', '.join(fake_flags)}")
+
+        # Record unlock metadata
+        self.metadata = {
+            "real_flag": real_flag,
+            "challenge_file": str(output_path.relative_to(self.project_root)),
+            "unlock_method": "Inspect hex_flag.bin with a hex editor or strings command to locate the flag",
+            "hint": "Try running 'strings hex_flag.bin' or open it in a hex editor like bless or GHex."
+        }
 
     def generate_flag(self, challenge_folder: Path) -> str:
         """

@@ -1,19 +1,15 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:46:28 GMT
-Server: Liber8-Server/2.3.1
-Content-Type: text/html; charset=UTF-8
+Date: Sun, 30 Jun 2025 15:46:07 GMT
+Server: Liber8-Server/3.0.0-beta
+Content-Type: text/plain; charset=UTF-8
 Cache-Control: private, no-cache
-X-Powered-By: ASP.NET Core/7.0
-X-Flag: QKQF-PDZH-4156
+X-Powered-By: Python/3.11.4
+X-Flag: MUDU-FWFZ-5130
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
+Set-Cookie: sessionid=yi9kke8dc1x3; HttpOnly; Secure
 
-<html>
-  <head><title>Data Service</title></head>
-  <body>
-    <h1>Data Service Ready</h1>
-    <p>Connect your client application to begin.</p>
-  </body>
-</html>
+Welcome to the Liber8 data endpoint.
+This endpoint returns plain text responses.
 
-<!-- Debug: Temporary caching enabled -->
+<!-- Debug: API response size 512 bytes -->

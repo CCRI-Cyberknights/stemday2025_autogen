@@ -16,9 +16,12 @@ class PcapSearchFlagGenerator:
     """
     Generator for the PCAP Search challenge.
     Creates a traffic.pcap file with embedded real and fake flags.
+    Stores unlock metadata for validation workflow.
     """
+
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -115,6 +118,14 @@ class PcapSearchFlagGenerator:
         print(f"   🏁 Real flag: {real_flag}")
         print(f"   🎭 Fake flags: {', '.join(fake_flags)}")
         print(f"📦 Total packets: {len(packets)}")
+
+        # Record unlock metadata
+        self.metadata = {
+            "real_flag": real_flag,
+            "challenge_file": str(output_file.relative_to(self.project_root)),
+            "unlock_method": "Analyze traffic.pcap for flags in HTTP headers using Wireshark or tshark",
+            "hint": "Filter for HTTP headers in Wireshark (e.g., http.header) or grep for 'X-Flag:'"
+        }
 
     def generate_flag(self, challenge_folder: Path) -> str:
         """

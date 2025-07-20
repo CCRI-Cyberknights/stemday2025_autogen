@@ -1,20 +1,15 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:45:43 GMT
-Server: nginx/1.24.0
-Content-Type: text/plain; charset=UTF-8
+Date: Sun, 30 Jun 2025 15:52:41 GMT
+Server: Go HTTP Server/1.19
+Content-Type: text/html; charset=UTF-8
 Cache-Control: no-store
 X-Powered-By: PHP/8.1.12
-X-Flag: CCRI-GPEO-5115
+X-Flag: CCRI-PUAP-4447
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
-Set-Cookie: sessionid=zcg2gb4o8ou0; HttpOnly; Secure
+Set-Cookie: sessionid=rl0h7e46525l; HttpOnly; Secure
 
-<html>
-  <head><title>Liber8 Portal</title></head>
-  <body>
-    <h1>Welcome to Liber8</h1>
-    <p>System maintenance is underway. Some services may be unavailable.</p>
-  </body>
-</html>
+Welcome to the Liber8 data endpoint.
+This endpoint returns plain text responses.
 
-<!-- Debug: API response size 512 bytes -->
+<!-- Debug: Session created for client 10.6.112.3 -->

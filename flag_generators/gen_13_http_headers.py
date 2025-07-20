@@ -81,6 +81,7 @@ This endpoint returns plain text responses."""
 
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -143,7 +144,7 @@ This endpoint returns plain text responses."""
             all_flags = fake_flags + [real_flag]
             random.shuffle(all_flags)
 
-            print(f"🎭 Fake flags: {', '.join(fake_flags)}")  # <-- Added this print
+            print(f"🎭 Fake flags: {', '.join(fake_flags)}")
 
             for i, flag in enumerate(all_flags, start=1):
                 file_path = challenge_folder / f"response_{i}.txt"
@@ -152,8 +153,18 @@ This endpoint returns plain text responses."""
 
                 if flag == real_flag:
                     print(f"✅ {file_path.name} (REAL flag)")
+                    real_response_file = file_path
                 else:
                     print(f"➖ {file_path.name} (decoy)")
+
+            # Record unlock metadata
+            self.metadata = {
+                "real_flag": real_flag,
+                "challenge_file": str(real_response_file.relative_to(self.project_root)),
+                "unlock_method": "Inspect HTTP headers in response_*.txt to locate the X-Flag header with the real flag",
+                "hint": "Look for custom HTTP headers like X-Flag in the responses"
+            }
+
         except Exception as e:
             print(f"❌ Failed during HTTP response embedding: {e}", file=sys.stderr)
             sys.exit(1)

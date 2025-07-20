@@ -11,9 +11,12 @@ class ExtractBinaryFlagGenerator:
     """
     Generator for the Extract Binary challenge.
     Embeds real and fake flags into a compiled C binary.
+    Stores unlock metadata for validation workflow.
     """
+
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -107,6 +110,14 @@ int main() {{
                 print(f"🧹 Cleaned up source file: {c_file.relative_to(self.project_root)}")
             except Exception as cleanup_err:
                 print(f"⚠️ Warning: Could not remove {c_file.relative_to(self.project_root)}: {cleanup_err}")
+
+            # Record unlock metadata
+            self.metadata = {
+                "real_flag": real_flag,
+                "challenge_file": str(binary_file.relative_to(self.project_root)),
+                "unlock_method": "Analyze binary with strings or a disassembler to find flags",
+                "hint": "Try using 'strings hidden_flag' or load it in radare2."
+            }
 
         except Exception as e:
             print(f"💥 ERROR: {e}", file=sys.stderr)

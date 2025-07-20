@@ -10,6 +10,7 @@ class SubdomainSweepFlagGenerator:
     """
     Generator for the Subdomain Sweep challenge.
     Produces 5 subdomain HTML files with 1 real flag and 4 decoys.
+    Stores unlock metadata for validation workflow.
     """
 
     SUBDOMAINS = [
@@ -48,6 +49,7 @@ class SubdomainSweepFlagGenerator:
 
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -138,7 +140,7 @@ class SubdomainSweepFlagGenerator:
             flags = fake_flags + [real_flag]
             random.shuffle(flags)
 
-            print(f"🎭 Fake flags: {', '.join(fake_flags)}")  # <-- Added this print
+            print(f"🎭 Fake flags: {', '.join(fake_flags)}")
 
             for (subdomain, title, header_title, header_desc), footer, flag in zip(
                 self.SUBDOMAINS, self.FOOTERS, flags
@@ -151,6 +153,15 @@ class SubdomainSweepFlagGenerator:
                     print(f"✅ {file_path.name} (REAL flag)")
                 else:
                     print(f"➖ {file_path.name} (decoy)")
+
+            # Record unlock metadata
+            self.metadata = {
+                "real_flag": real_flag,
+                "challenge_folder": str(challenge_folder.relative_to(self.project_root)),
+                "unlock_method": "Inspect HTML files for subdomains to locate the flag",
+                "hint": "Search *.liber8.local.html for the flag string using grep or a browser"
+            }
+
         except Exception as e:
             print(f"❌ Failed during subdomain HTML embedding: {e}", file=sys.stderr)
             sys.exit(1)

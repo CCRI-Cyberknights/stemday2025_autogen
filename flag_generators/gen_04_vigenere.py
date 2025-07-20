@@ -10,11 +10,13 @@ class VigenereFlagGenerator:
     """
     Generator for the Vigenère cipher challenge.
     Encodes an intercepted transmission (including flags) into cipher.txt.
+    Stores unlock metadata for validation workflow.
     """
     VIGENERE_KEY = "login"
 
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -84,6 +86,15 @@ class VigenereFlagGenerator:
             # Write to cipher.txt
             cipher_file.write_text(encrypted_message)
             print(f"📝 {cipher_file.relative_to(self.project_root)} created with Vigenère-encrypted transmission.")
+
+            # Record unlock metadata (key required to decrypt)
+            self.metadata = {
+                "real_flag": real_flag,
+                "challenge_file": str(cipher_file.relative_to(self.project_root)),
+                "vigenere_key": self.VIGENERE_KEY,
+                "unlock_method": f"Vigenère cipher (key='{self.VIGENERE_KEY}')",
+                "hint": "Use the Vigenère key to decrypt cipher.txt."
+            }
 
         except PermissionError:
             print(f"❌ Permission denied: Cannot write to {cipher_file.relative_to(self.project_root)}")

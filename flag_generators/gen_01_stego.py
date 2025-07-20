@@ -17,6 +17,10 @@ class StegoFlagGenerator:
         self.generator_dir = self.project_root / "flag_generators"
         self.source_image = self.generator_dir / "squirrel.jpg"
 
+        # === Exported unlock data for validation ===
+        self.last_password = None
+        self.last_fake_flags = []
+
     @staticmethod
     def find_project_root() -> Path:
         """
@@ -86,7 +90,10 @@ class StegoFlagGenerator:
         """
         real_flag = FlagUtils.generate_real_flag()
         fake_flags = [FlagUtils.generate_fake_flag() for _ in range(4)]
-        self.embed_flags(challenge_folder, real_flag, fake_flags)
+        self.last_fake_flags = fake_flags  # Store for validation
+        self.last_password = "password"   # Store password used
+
+        self.embed_flags(challenge_folder, real_flag, fake_flags, passphrase=self.last_password)
         print('   🎭 Fake flags:', ', '.join(fake_flags))
 
         print(f"✅ Admin flag: {real_flag}")

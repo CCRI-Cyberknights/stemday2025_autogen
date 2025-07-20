@@ -1,15 +1,19 @@
 HTTP/1.1 200 OK
-Date: Sun, 30 Jun 2025 15:45:33 GMT
-Server: Go HTTP Server/1.19
+Date: Sun, 30 Jun 2025 15:57:44 GMT
+Server: nginx/1.24.0
 Content-Type: text/html; charset=UTF-8
-Cache-Control: no-store
+Cache-Control: private, no-cache
 X-Powered-By: Python/3.11.4
-X-Flag: RSQQ-OLKI-1331
+X-Flag: GNMR-INMA-1029
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
-Set-Cookie: sessionid=kkg4x7s2mnia; HttpOnly; Secure
 
-Welcome to the Liber8 data endpoint.
-This endpoint returns plain text responses.
+<html>
+  <head><title>Liber8 Portal</title></head>
+  <body>
+    <h1>Welcome to Liber8</h1>
+    <p>System maintenance is underway. Some services may be unavailable.</p>
+  </body>
+</html>
 
-<!-- Debug: Session created for client 10.6.112.3 -->
+<!-- Debug: Temporary caching enabled -->

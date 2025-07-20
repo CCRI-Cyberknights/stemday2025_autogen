@@ -10,11 +10,14 @@ class FixScriptFlagGenerator:
     """
     Generator for the Fix the Script challenge.
     Embeds the real flag into a Python script with a broken operator.
+    Stores unlock metadata for validation workflow.
     """
+
     ALL_OPERATORS = ["+", "-", "*", "/"]
 
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -114,6 +117,14 @@ print(f"Your flag is: CCRI-SCRP-{{int(code)}}")
 
             print(f"📝 broken_flag.py created: {script_path.relative_to(self.project_root)}")
             print(f"✅ Correct op = {correct_op}, Broken op = {wrong_op}, Flag = CCRI-SCRP-{suffix_value}")
+
+            # Record unlock metadata
+            self.metadata = {
+                "real_flag": f"CCRI-SCRP-{suffix_value}",
+                "challenge_file": str(script_path.relative_to(self.project_root)),
+                "unlock_method": "Fix the Python script’s math operator to calculate the flag",
+                "hint": "Look for the broken operator in broken_flag.py and correct it."
+            }
 
         except Exception as e:
             print(f"💥 Failed to write script: {e}", file=sys.stderr)

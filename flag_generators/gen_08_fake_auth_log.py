@@ -11,9 +11,12 @@ class FakeAuthLogFlagGenerator:
     """
     Generator for the Fake Auth Log challenge.
     Embeds real and fake flags into a simulated auth.log file.
+    Stores unlock metadata for validation workflow.
     """
+
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -75,6 +78,14 @@ class FakeAuthLogFlagGenerator:
             log_path.write_text("\n".join(lines))
             print(f"📝 Fake auth.log created: {log_path.relative_to(self.project_root)}")
             print(f"✅ Admin flag: {real_flag}")
+
+            # Record unlock metadata
+            self.metadata = {
+                "real_flag": real_flag,
+                "challenge_file": str(log_path.relative_to(self.project_root)),
+                "unlock_method": "Inspect auth.log for embedded flag in sshd PIDs",
+                "hint": "Look for unusual process IDs in auth.log to spot the flag."
+            }
 
         except PermissionError:
             print(f"❌ Permission denied: Cannot write to {log_path.relative_to(self.project_root)}", file=sys.stderr)

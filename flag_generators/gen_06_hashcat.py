@@ -13,9 +13,12 @@ class HashcatFlagGenerator:
     """
     Generator for the Hashcat challenge.
     Splits flags into parts, encodes them, and creates password-protected zips.
+    Stores unlock metadata for validation workflow.
     """
+
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -107,6 +110,19 @@ class HashcatFlagGenerator:
                 f"and 🔒 {segments_dir.relative_to(self.project_root)} created "
                 f"with random passwords: {', '.join(chosen_passwords)}"
             )
+
+            # Record unlock metadata
+            self.metadata = {
+                "real_flag": real_flag,
+                "challenge_files": {
+                    "hashes": str(hashes_txt.relative_to(self.project_root)),
+                    "wordlist": str(wordlist_file.relative_to(self.project_root)),
+                    "segments_dir": str(segments_dir.relative_to(self.project_root)),
+                },
+                "zip_passwords": chosen_passwords,
+                "unlock_method": "Recover MD5 hashes with Hashcat and unzip protected parts",
+                "hint": "Use hashes.txt + wordlist.txt with Hashcat to crack passwords and extract ZIPs."
+            }
 
         except Exception as e:
             print(f"❌ Unexpected error during Hashcat setup: {e}")

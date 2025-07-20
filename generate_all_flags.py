@@ -3,6 +3,7 @@
 import argparse
 import sys
 import shutil
+import json
 from pathlib import Path
 
 # === Import backend classes ===
@@ -62,6 +63,9 @@ class FlagGenerationManager:
         self.challenge_list = ChallengeList()
         self.dry_run = dry_run
 
+        # Prepare unlock data structure
+        self.validation_unlocks = {}
+
     @staticmethod
     def find_project_root():
         """Walk up from current directory until .ccri_ctf_root is found."""
@@ -74,16 +78,23 @@ class FlagGenerationManager:
 
     def prepare_backup(self):
         """Create a backup of challenges.json."""
-        if not self.dry_run:
-            backup_file = self.web_admin_dir / "challenges.json.bak"
-            shutil.copy2(self.web_admin_dir / "challenges.json", backup_file)
-            print(f"📦 Backup created: {backup_file.relative_to(self.project_root)}")
+        backup_file = self.web_admin_dir / "challenges.json.bak"
+        shutil.copy2(self.web_admin_dir / "challenges.json", backup_file)
+        print(f"📦 Backup created: {backup_file.relative_to(self.project_root)}")
+
+    def save_unlocks(self):
+        """Save validation unlocks JSON."""
+        unlocks_path = self.web_admin_dir / "validation_unlocks.json"
+        with open(unlocks_path, "w", encoding="utf-8") as f:
+            json.dump(self.validation_unlocks, f, indent=2)
+        print(f"🔑 Unlock data saved: {unlocks_path.relative_to(self.project_root)}")
 
     def print_flag_report(self, real_flag, fake_flags):
         """Print real and fake flags for sanity checking."""
         print(f"   🏁 Real flag: {real_flag}")
-        for fake in fake_flags:
-            print(f"   🎭 Fake flag: {fake}")
+        if fake_flags:
+            for fake in fake_flags:
+                print(f"   🎭 Fake flag: {fake}")
 
     def generate_flags(self):
         """Iterate through challenges and generate flags."""
@@ -104,6 +115,10 @@ class FlagGenerationManager:
                     if self.dry_run
                     else Path(challenge.getFolder())
                 )
+                
+                # Always overwrite existing challenge folders
+                if target_folder.exists():
+                    shutil.rmtree(target_folder)
                 target_folder.mkdir(parents=True, exist_ok=True)
 
                 print(f"🚀 Generating flag for {challenge.getId()}...")
@@ -111,19 +126,29 @@ class FlagGenerationManager:
                 generator_cls = GENERATOR_CLASSES.get(challenge.getId())
                 if generator_cls:
                     generator = generator_cls()
-                    
-                    # Intercept fake flags if available
+
+                    # Run flag generation (force overwrite=True where applicable)
                     real_flag = generator.generate_flag(target_folder)
                     fake_flags = getattr(generator, "last_fake_flags", [])
 
-                    # Sanity check: print real + fake flags
+                    # Gather unlock hints from the generator
+                    unlock_data = getattr(generator, "metadata", {})
+
+                    for attr in ["last_password", "last_zip_password", "last_subdomains", "last_ports"]:
+                        value = getattr(generator, attr, None)
+                        if value:
+                            unlock_data[attr] = value
+
+                    self.validation_unlocks[challenge.getId()] = unlock_data
+
+                    # Print flag report
                     self.print_flag_report(real_flag, fake_flags)
 
                     if self.dry_run:
                         print(f"✅ [Dry-Run] {challenge.getId()}: Real flag = {real_flag}")
                         print(f"📂 Would write files to: {target_folder.relative_to(self.project_root)}\n")
                     else:
-                        challenge.flag = real_flag  # Update flag on Challenge object
+                        challenge.flag = real_flag
                         print(f"✅ {challenge.getId()}: Real flag = {real_flag}\n")
 
                     success_count += 1
@@ -136,25 +161,18 @@ class FlagGenerationManager:
         if not self.dry_run:
             self.challenge_list.save_challenges()
             print("🎉 All flags generated and challenges.json updated.")
+            self.save_unlocks()
 
         print(f"\n📊 Summary: {success_count} successful | {fail_count} failed")
-
 
 # === Entry Point ===
 if __name__ == "__main__":
     try:
-        while True:
-            choice = input("💡 Run in dry-run mode? (y/n): ").strip().lower()
-            if choice in ["y", "yes"]:
-                dry_run = True
-                break
-            elif choice in ["n", "no"]:
-                dry_run = False
-                break
-            else:
-                print("❓ Please answer 'y' or 'n'.")
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--dry-run", action="store_true", help="Generate flags without modifying challenges.json")
+        args = parser.parse_args()
 
-        manager = FlagGenerationManager(dry_run=dry_run)
+        manager = FlagGenerationManager(dry_run=args.dry_run)
         manager.generate_flags()
     except Exception as e:
         print(f"\n❌ ERROR: {e}")

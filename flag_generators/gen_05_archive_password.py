@@ -12,10 +12,13 @@ class ArchivePasswordFlagGenerator:
     """
     Generator for the Archive Password challenge.
     Embeds real and fake flags into a password-protected ZIP archive.
+    Stores unlock metadata for validation workflow.
     """
+
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
         self.wordlist_template = self.project_root / "flag_generators" / "wordlist.txt"
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -84,6 +87,16 @@ class ArchivePasswordFlagGenerator:
             # Clean up temp file
             encoded_file.unlink()
             print(f"🗝️ {wordlist_file.relative_to(self.project_root)} and 🔒 {zip_file.relative_to(self.project_root)} created with correct password: {correct_password}")
+
+            # Record unlock metadata
+            self.metadata = {
+                "real_flag": real_flag,
+                "challenge_file": str(zip_file.relative_to(self.project_root)),
+                "wordlist_file": str(wordlist_file.relative_to(self.project_root)),
+                "zip_password": correct_password,
+                "unlock_method": "Brute-force ZIP password using provided wordlist",
+                "hint": "Use wordlist.txt with zip2john + hashcat or fcrackzip."
+            }
 
         except Exception as e:
             print(f"❌ Unexpected error: {e}")

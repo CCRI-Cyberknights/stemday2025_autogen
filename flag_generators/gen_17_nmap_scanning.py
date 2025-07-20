@@ -12,10 +12,13 @@ class NmapScanFlagGenerator:
     Generator for the Nmap Scanning challenge.
     Dynamically patches web_version_admin/server.py with random ports,
     flags, and service names for realism.
+    Stores unlock metadata for validation workflow.
     """
+
     def __init__(self, project_root: Path = None, server_file: Path = None):
         self.project_root = project_root or self.find_project_root()
         self.server_file = server_file or self.project_root / "web_version_admin" / "server.py"
+        self.metadata = {}  # For unlock info
 
     @staticmethod
     def find_project_root() -> Path:
@@ -111,6 +114,15 @@ class NmapScanFlagGenerator:
             server_file.write_text(new_content, encoding="utf-8")
             print(f"✅ Updated {server_file.name}")
 
+            # === Record unlock metadata
+            self.metadata = {
+                "real_flag": real_flag,
+                "real_port": real_port,
+                "server_file": str(server_file.relative_to(self.project_root)),
+                "unlock_method": f"Scan ports and query HTTP endpoints to locate the real flag (port {real_port})",
+                "hint": "Use nmap -p8000-8100 localhost to discover ports and curl to check flags."
+            }
+
         except Exception as e:
             print(f"❌ ERROR during server.py patching: {e}", file=sys.stderr)
             sys.exit(1)
@@ -152,10 +164,10 @@ class NmapScanFlagGenerator:
             for port in selected_junk_ports
         }
 
-        # === Patch server.py with new data ===
+        # === Patch server.py with new data
         self.patch_server_file(real_flag, fake_flags, real_port, junk_responses)
 
-        # === Return plaintext real flag ===
+        # === Return plaintext real flag
         print(f"🏁 Real flag: {real_flag} on port {real_port}")
         for port, flag in fake_flags.items():
             print(f"🎭 Fake flag: {flag} on port {port}")

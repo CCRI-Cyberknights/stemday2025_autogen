@@ -15,6 +15,9 @@ class Base64FlagGenerator:
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or self.find_project_root()
 
+        # === Exported unlock data for validation ===
+        self.last_fake_flags = []
+
     @staticmethod
     def find_project_root() -> Path:
         """
@@ -85,6 +88,8 @@ class Base64FlagGenerator:
         # Ensure real flag isn’t duplicated accidentally
         while real_flag in fake_flags:
             real_flag = FlagUtils.generate_real_flag()
+
+        self.last_fake_flags = fake_flags  # Store for validation
 
         self.embed_flags(challenge_folder, real_flag, fake_flags)
         print('   🎭 Fake flags:', ', '.join(fake_flags))
