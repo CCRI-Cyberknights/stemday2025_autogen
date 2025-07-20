@@ -9,6 +9,19 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
     />
+    <!-- Prevent back/forward cache issues -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <script>
+      // Force reload when navigating with browser back/forward buttons
+      window.addEventListener("pageshow", function (event) {
+        if (event.persisted) {
+          console.log("⏪ Back/Forward cache detected: Reloading index...");
+          window.location.reload();
+        }
+      });
+    </script>
   </head>
   <body>
     <h1>🚀 CCRI CTF {{ "Admin" if mode == "admin" else "Student" }} Hub</h1>
