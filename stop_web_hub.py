@@ -73,22 +73,10 @@ def main():
     print("🛑 Stopping CCRI CTF Hub...\n")
     project_root = find_project_root()
 
-    # Prompt user to select mode
-    print("Which server do you want to stop?")
-    print("1) 🛠️ Admin Server")
-    print("2) 🎓 Student Server\n")
-    mode_choice = input("Enter choice [1-2]: ").strip()
-    if mode_choice == "1":
-        server_file = os.path.join(project_root, "web_version_admin", "server.py")
-    elif mode_choice == "2":
-        server_file = os.path.join(project_root, "web_version", "server.pyc")
-    else:
-        print("❌ Invalid choice. Exiting.")
-        sys.exit(1)
-
-    # Stop Flask server
+    # Stop Flask server processes (Admin or Student)
     print("🔍 Searching for running Flask server processes...")
-    kill_processes_by_pattern(f"python3.*{server_file}")
+    kill_processes_by_pattern("python3.*server.py")  # Matches Admin server
+    kill_processes_by_pattern("python3.*server.pyc") # Matches Student server
 
     # Stop Flask on port 5000 (backup)
     print("🔍 Checking for processes on port 5000...")
